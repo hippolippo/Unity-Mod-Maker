@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>{{mod_name}}</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>Libraries/BepInEx.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>Libraries/Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="HarmonyX">
+      <HintPath>Libraries/0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="BepInEx.Harmony">
+      <HintPath>Libraries/BepInEx.Harmony.dll</HintPath>
+    </Reference>
+    {{ptf}}
+    <Reference Include="UnityEngine">
+      <HintPath>Libraries/UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>Libraries/UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>Libraries/UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Vectrosity">
+      <HintPath>Libraries/Vectrosity.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

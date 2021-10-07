@@ -2,7 +2,7 @@ from CodeManager import *
 END_BLOCK = CodeLine("}")
 
 
-def create_headers(poly_tech=False):
+def create_headers(poly_tech=True):
     code = [
         CodeLine("using System;"),
         CodeLine("using System.Collections;"),
@@ -33,7 +33,7 @@ def create_namespace(mod_name, mod_name_no_space):
     return namespace
 
 
-def create_namespace_contents(poly_tech=False):
+def create_namespace_contents(poly_tech=True):
     namespace_contents = LargeCodeBlockWrapper()
     bix_dependencies = CodeBlock()
     bix_dependencies.add_line(code_line=CodeLine("[BepInPlugin(pluginGuid, pluginName, pluginVersion)]"))
@@ -46,7 +46,7 @@ def create_namespace_contents(poly_tech=False):
     return namespace_contents
 
 
-def create_class(mod_name, mod_name_no_space, poly_tech=False):
+def create_class(mod_name, mod_name_no_space, poly_tech=True):
     output = CodeBlockWrapper(
         prefix=CodeBlock(code_lines=[
             CodeLine("public class"),
@@ -61,7 +61,7 @@ def create_class(mod_name, mod_name_no_space, poly_tech=False):
     return output
 
 
-def create_constants(mod_name, mod_name_no_space, version, poly_tech=False):
+def create_constants(mod_name, mod_name_no_space, version, poly_tech=True):
     output = LargeCodeBlockWrapper()
     plugin_guid = LargeCodeBlockWrapper([CodeLine("public const string pluginGuid =")], delimiter=" ")
     output.insert_block_after(plugin_guid)
@@ -94,7 +94,7 @@ def create_function(head, contents=None):
     return function
 
 
-def create_poly_tech_functions(poly_tech=False):
+def create_poly_tech_functions(poly_tech=True):
     if not poly_tech:
         return CodeBlock()
     output = LargeCodeBlockWrapper()
@@ -108,10 +108,12 @@ def create_poly_tech_functions(poly_tech=False):
     return output
 
 
-def create_awake(mod_name, mod_name_no_space, poly_tech=False):
+def create_awake(mod_name, mod_name_no_space, poly_tech=True):
     output = LargeCodeBlockWrapper()
-    output.insert_block_after(CodeBlock([CodeLine("Logger.LogInfo(\""), mod_name, CodeLine(" Methods Patched\");")],
-                                        delimiter=""))
+    if poly_tech:
+        output.insert_block_after(CodeBlock([CodeLine("Logger.LogInfo(\""), mod_name,
+                                             CodeLine(" Methods Patched\");")],
+                                            delimiter=""))
     output.insert_block_after(CodeBlock([CodeLine("Harmony.CreateAndPatchAll(typeof("), mod_name_no_space,
                                          CodeLine("));")], delimiter=""))
     output = create_function("void Awake()", contents=output)
