@@ -109,6 +109,11 @@ class ModObject:
     def get_text(self):
         return self.code.get_text()
 
+    def get_block_list(self):
+        return self.code.get_block_list()
+    def get_list(self):
+        return self.code.get_list()
+
     def install(self):
         path = create_files(self)
         if path is None:

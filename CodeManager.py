@@ -13,6 +13,8 @@ class CodeLine:
     def get_postfix(self): return CodeBlock(code_lines=[self])
     def get_contents(self): return CodeBlock(code_lines=[self])
     def to_code_block(self): return CodeBlock(code_lines=[self])
+    def get_block_list(self): return [self.code]
+    def get_list(self): return [None]
 
 
 class CodeBlock:
@@ -50,6 +52,8 @@ class CodeBlock:
     def get_postfix(self): return self
     def get_contents(self): return self
     def to_code_block(self): return self
+    def get_block_list(self): return [line.get_text() for line in self.lines]
+    def get_list(self): return self.lines
 
 
 class CodeBlockWrapper:
@@ -81,6 +85,9 @@ class CodeBlockWrapper:
     def get_text(self):
         return self.prefix.get_text() + self.delimiter + self.contents.get_text() + self.delimiter +\
                self.postfix.get_text()
+
+    def get_block_list(self): return [self.prefix.get_text(), self.contents.get_text(), self.postfix.get_text()]
+    def get_list(self): return [self.prefix, self.contents, self.postfix]
 
 
 class LargeCodeBlockWrapper:
@@ -119,5 +126,7 @@ class LargeCodeBlockWrapper:
     def get_lines(self): return self.to_code_block().get_lines()
 
     def get_text(self): return self.delimiter.join([block.get_text() for block in self.block_list])
+    def get_block_list(self): return [block.get_text() for block in self.block_list]
+    def get_list(self): return self.block_list
 
 
