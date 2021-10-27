@@ -1,5 +1,8 @@
 from CodeManager import *
-END_BLOCK = CodeLine("}")
+
+
+def end_block():
+    return CodeLine("}")
 
 
 def create_headers(poly_tech=True):
@@ -28,7 +31,7 @@ def create_namespace(mod_name, mod_name_no_space):
     )
     namespace = CodeBlockWrapper(
         prefix=namespace_top,
-        postfix=END_BLOCK
+        postfix=end_block()
     )
     return namespace
 
@@ -54,7 +57,7 @@ def create_class(mod_name, mod_name_no_space, poly_tech=True):
             CodeLine("{")
         ], delimiter=" "),
         contents=LargeCodeBlockWrapper(),
-        postfix=END_BLOCK
+        postfix=end_block()
     )
     if poly_tech:
         output.prefix.add_line(CodeLine(": PolyTechMod"), location=2)
@@ -89,7 +92,7 @@ def create_function(head, contents=None):
     function = CodeBlockWrapper(
         prefix=head,
         contents=new_contents,
-        postfix=END_BLOCK
+        postfix=end_block()
     )
     return function
 

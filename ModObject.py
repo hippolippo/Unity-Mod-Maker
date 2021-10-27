@@ -15,8 +15,8 @@ class ModObject:
         self.config_number = 0
         self.version = CodeLine(version)
         self.poly_tech = poly_tech
-        self.mod_name = CodeLine(mod_name)
-        self.mod_name_no_space = CodeLine(mod_name.replace(" ", ""))
+        self.mod_name = CodeLine(mod_name, locked=True)
+        self.mod_name_no_space = CodeLine(mod_name.replace(" ", ""), locked=True)
         self.code = LargeCodeBlockWrapper()
         self.header = create_headers(poly_tech=self.poly_tech)
         self.code.insert_block_before(self.header)
@@ -43,7 +43,7 @@ class ModObject:
         self.class_constructor = CodeBlockWrapper(
             prefix=CodeBlock([CodeLine("public "), self.mod_name_no_space, CodeLine("(){")], delimiter=""),
             contents=LargeCodeBlockWrapper(),
-            postfix=END_BLOCK
+            postfix=end_block()
         )
         self.class_wrap.contents.insert_block_after(self.class_constructor)
         self.awake = create_awake(self.mod_name, self.mod_name_no_space, poly_tech=self.poly_tech)
@@ -88,12 +88,12 @@ class ModObject:
                 ", ".join(parameters) + "){"
             ),
             contents=LargeCodeBlockWrapper(),
-            postfix=END_BLOCK
+            postfix=end_block()
         ))
         patch.block_list[-1].contents.insert_block_after(LargeCodeBlockWrapper([
             CodeBlockWrapper(
                 prefix=CodeLine("if(mEnabled.Value){" if poly_tech else ""),
-                postfix=END_BLOCK if poly_tech else CodeLine("")
+                postfix=end_block() if poly_tech else CodeLine("")
             ),
             CodeLine("return true;")
         ]))
