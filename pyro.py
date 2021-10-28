@@ -73,6 +73,9 @@
 import os
 import io
 import sys
+from GraphicalInterface import *
+import MenuMethods
+from functools import partial
 
 try:
     # Python 3
@@ -86,6 +89,7 @@ except ImportError:
     import tkFont as font
     import ScrolledText as scrolledtext
 
+from ModObject import *
 from pygments.lexers.python import PythonLexer
 from pygments.lexers.special import TextLexer
 from pygments.lexers.html import HtmlLexer
@@ -110,7 +114,13 @@ class CoreUI(object):
         the lexer to be used for text decoration.
     """
 
-    def __init__(self, lexer, text="", filename="Untitled"):
+    def __init__(self, lexer, filename="Untitled", mod=None):
+        set_window_count(get_window_count()+1)
+        self.filename = filename
+        if mod is None:
+            mod = ModObject("Untitled")
+        self.mod = mod
+        self.contents = mod.get_text()
         self.sourcestamp = {}
         self.filestamp = {}
         self.uiopts = []
@@ -132,8 +142,10 @@ class CoreUI(object):
         self.create_tags()
         self.text.edit_modified(False)
         self.bootstrap = [self.recolorize]
-        self.filename = filename
-        self.loadfile(text)
+        self.loadfile(self.contents)
+        self.recolorize()
+        self.updatetitlebar()
+
 
     def initialize_menubar(self):
         self.menubar = tkinter.Menu(self.root)
@@ -141,19 +153,22 @@ class CoreUI(object):
         self.filemenu = tkinter.Menu(self.menubar, tearoff=False)
         self.editmenu = tkinter.Menu(self.menubar, tearoff=False)
         self.createmenu = tkinter.Menu(self.menubar, tearoff=False)
+        self.buildmenu = tkinter.Menu(self.menubar, tearoff=True)
 
         self.menubar.add_cascade(label="File", menu=self.filemenu)
 
-        self.filemenu.add_command(label="New")
-        self.filemenu.add_command(label="Open")
-        self.filemenu.add_command(label="Save")
-        self.filemenu.add_command(label="Copy and Rename")
+        self.filemenu.add_command(label="New", command=MenuMethods.new)
+        self.filemenu.add_command(label="Open", command=MenuMethods.open)
+        self.filemenu.add_command(label="Save", command=partial(MenuMethods.save, self.mod, self.filename))
+        self.filemenu.add_command(label="Save as Renamed Copy", command=partial(MenuMethods.copy, self.mod))
 
         self.menubar.add_cascade(label="Edit", menu=self.editmenu)
 
         self.editmenu.add_command(label="")
 
         self.menubar.add_cascade(label="Create", menu=self.createmenu)
+
+        self.menubar.add_cascade(label="Build", menu=self.buildmenu)
 
         self.root.config(menu=self.menubar)
 
@@ -211,9 +226,6 @@ class CoreUI(object):
         self.root.update()
 
     def destroy_window(self):
-        """
-            this method safely closes the window
-        """
         self.close()
 
     def search(self, regexp, currentposition):
@@ -355,9 +367,8 @@ class CoreUI(object):
 
     def adjust_cli(self, event=None):
         height = self.cli.cget("height")
-        if self.cli.get("1.0", tkinter.END).count("\n") != height:
-            self.cli.config(height=self.cli.get("1.0", tkinter.END).count("\n"))
-
+        if min(self.cli.get("1.0", tkinter.END).count("\n"),25) != height:
+            self.cli.config(height=min(self.cli.get("1.0", tkinter.END).count("\n"),25))
 
     def autoindent(self, event):
         """
@@ -427,16 +438,11 @@ class CoreUI(object):
         # self.recolorize()
 
     def close(self, event=None):
-        """
-            this event callback method implements the Quit operation (ctrl+q). In a perfect
-            world, it will check on whether the file is saved and warn the user accordingly
-            a graceful way out.
-            arguments: the associated event argument. However, unlike the other event
-            callbacks in the code, this one may be called without an associated event object
-            as it will discard everything.
-        """
-
+        set_window_count(get_window_count()-1)
         self.root.destroy()
+        if get_window_count() <= 0:
+            set_window_count(0)
+            InterfaceMenu()
 
     # ---------------------------------------------------------------------------------------
 
