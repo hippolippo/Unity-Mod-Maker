@@ -1,4 +1,4 @@
 # Unity-Mod-Maker
-A Python Application Designed to Accelerate The Development of Unity Mods (Specifically Poly Bridge 2 Mods)
+You can no longer fully make a mod because I am working on redoing the interface, you can still use main.py to actually make a mod however.
 
-The Program is not yet ready for use but it can generate template C# files if you run the ModObject.py file
+To use the Tool, run GraphicalInterface.py
