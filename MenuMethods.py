@@ -1,9 +1,12 @@
+from tkinter import messagebox
+
 from pyroprompt import *
 import pyro
 from os.path import exists
 import os
 from ModObject import ModObject
 import ModObject
+from tkinter import *
 from pygments.lexers.dotnet import CSharpLexer
 
 
@@ -51,3 +54,23 @@ def _copy_fallback(mod, name):
 
 def copy(mod):
     create_prompt("Copy Mod", ("New Mod Name",), partial(_copy_fallback, mod), None)
+
+
+def build_install(mod):
+    root = Tk()
+    root.title("Please Wait...")
+    root.iconbitmap("resources/unitymodmaker.ico")
+    root.configure(background="#618dcf")
+    Label(root, text="Please Wait...", font=("Arial", 20), background="#618dcf").pack(padx=20, pady=20)
+    root.update()
+    if mod.install(destroyonerror=root):
+        root.destroy()
+        messagebox.showinfo("Success", "Mod Successfully Installed")
+
+
+def export_cs(mod):
+    return
+
+
+def export_dotnet(mod):
+    return

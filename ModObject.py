@@ -1,6 +1,5 @@
 import shutil
 from tkinter import messagebox
-
 from ModObjectBuilder import *
 from CodeManager import *
 import pickle
@@ -114,8 +113,8 @@ class ModObject:
     def get_list(self):
         return self.code.get_list()
 
-    def install(self):
-        path = create_files(self)
+    def install(self, destroyonerror=None):
+        path = create_files(self, destroyonerror=destroyonerror)
         if path is None:
             return None
         dotnet_build(path)
@@ -124,11 +123,20 @@ class ModObject:
                       self.mod_name_no_space.get_text() + ".dll")
         except FileNotFoundError:
             pass
-        shutil.move(path + "/bin/Debug/netstandard2.0/" + self.mod_name_no_space.get_text() + ".dll",
-                    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Poly Bridge 2\\BepInEx\\plugins")
+        try:
+            shutil.move(path + "/bin/Debug/netstandard2.0/" + self.mod_name_no_space.get_text() + ".dll",
+                        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Poly Bridge 2\\BepInEx\\plugins")
+        except FileNotFoundError:
+            if destroyonerror is not None:
+                destroyonerror.destroy()
+            messagebox.showerror("Build of mod failed",
+                                 "The mod failed to build, either there was an error in the code or dotnet is not prope"
+                                 "rly installed. See Command Prompt for Details.")
+            return None
+        return True
 
 
-def create_files(mod: ModObject):
+def create_files(mod: ModObject, destroyonerror=None):
     name_no_space = mod.mod_name_no_space.get_text()
     current_directory = os.getcwd()
     folder_path = os.path.join(current_directory, "projects/"+name_no_space)
@@ -163,6 +171,8 @@ def create_files(mod: ModObject):
         print(e)
         print("ERROR: Could not create mod files, make sure Poly Bridge 2 is installed with BepInEx" +
               " and Polytech" if mod.poly_tech else "")
+        if destroyonerror is not None:
+            destroyonerror.destroy()
         messagebox.showerror("Could Not Create Mod Files",
                              "Couldn't Create Mod File, Make sure Poly Bridge 2 is Installed with BepInEx" +
                              " and Polytech" if mod.poly_tech else "")
