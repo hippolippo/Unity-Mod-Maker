@@ -113,10 +113,12 @@ class ModObject:
     def get_list(self):
         return self.code.get_list()
 
-    def install(self, destroyonerror=None):
+    def install(self, destroyonerror=None, progress_updater=print):
+        progress_updater("Generating Dotnet Files...")
         path = create_files(self, destroyonerror=destroyonerror)
         if path is None:
             return None
+        progress_updater("Running Dotnet Build...")
         dotnet_build(path)
         try:
             os.remove("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Poly Bridge 2\\BepInEx\\plugins\\" +

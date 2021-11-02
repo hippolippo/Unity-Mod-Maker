@@ -153,7 +153,7 @@ class CoreUI(object):
         self.filemenu = tkinter.Menu(self.menubar, tearoff=False)
         self.editmenu = tkinter.Menu(self.menubar, tearoff=False)
         self.createmenu = tkinter.Menu(self.menubar, tearoff=False)
-        self.buildmenu = tkinter.Menu(self.menubar, tearoff=True)
+        self.buildmenu = tkinter.Menu(self.menubar, tearoff=False)
 
         self.menubar.add_cascade(label="File", menu=self.filemenu)
 

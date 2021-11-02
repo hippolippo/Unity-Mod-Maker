@@ -10,6 +10,16 @@ from tkinter import *
 from pygments.lexers.dotnet import CSharpLexer
 
 
+def create_loading_screen(message="Please Wait..."):
+    root = Tk()
+    root.title("Please Wait...")
+    root.iconbitmap("resources/unitymodmaker.ico")
+    root.configure(background="#00062A")
+    x = Label(root, text=message, font=("Arial", 20), background="#00062A", fg="#b4d9f9")
+    x.pack(padx=20, pady=20)
+    root.update()
+    return root, x
+
 def _new_fallback(name):
     name = name[0]
     if exists(os.getcwd() + "/projects/" + name.replace(" ", "")):
@@ -57,13 +67,12 @@ def copy(mod):
 
 
 def build_install(mod):
-    root = Tk()
-    root.title("Please Wait...")
-    root.iconbitmap("resources/unitymodmaker.ico")
-    root.configure(background="#618dcf")
-    Label(root, text="Please Wait...", font=("Arial", 20), background="#618dcf").pack(padx=20, pady=20)
-    root.update()
-    if mod.install(destroyonerror=root):
+    root, text = create_loading_screen()
+
+    def set_text(x):
+        text.configure(text=x)
+        root.update()
+    if mod.install(destroyonerror=root, progress_updater=set_text):
         root.destroy()
         messagebox.showinfo("Success", "Mod Successfully Installed")
 
@@ -72,5 +81,10 @@ def export_cs(mod):
     return
 
 
-def export_dotnet(mod):
-    return
+def export_dotnet(mod, independent=True):
+    root = create_loading_screen("Generating Dotnet Files...")[0]
+    if ModObject.create_files(mod, destroyonerror=root) is not None:
+        if independent:
+            root.destroy()
+            messagebox.showinfo("Success", "Files Created Successfully")
+        return root
