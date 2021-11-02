@@ -143,6 +143,10 @@ def create_files(mod: ModObject, destroyonerror=None):
     current_directory = os.getcwd()
     folder_path = os.path.join(current_directory, "projects/"+name_no_space)
     try:
+        os.mkdir(os.path.join(current_directory, "projects"))
+    except FileExistsError:
+        pass
+    try:
         os.mkdir(folder_path)
     except FileExistsError:
         pass

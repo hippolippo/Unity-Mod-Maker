@@ -51,6 +51,10 @@ def save(mod, filename):
     current_directory = os.getcwd()
     folder_path = os.path.join(current_directory, "projects/"+filename)
     try:
+        os.mkdir(os.path.join(current_directory, "projects"))
+    except FileExistsError:
+        pass
+    try:
         os.mkdir(folder_path)
     except FileExistsError:
         pass
