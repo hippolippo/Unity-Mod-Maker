@@ -146,7 +146,6 @@ class CoreUI(object):
         self.recolorize()
         self.updatetitlebar()
 
-
     def initialize_menubar(self):
         self.menubar = tkinter.Menu(self.root)
 

@@ -3,7 +3,7 @@ from tkinter import *
 from functools import partial
 
 
-def create_prompt(title, questions: tuple, fallback, cancel_fallback, defaults=None):
+def create_prompt(title, questions: tuple, fallback, cancel_fallback, defaults=None, warning=None):
     root = Tk()
     root.configure(background="#00062A")
     root.title(title)
@@ -13,7 +13,10 @@ def create_prompt(title, questions: tuple, fallback, cancel_fallback, defaults=N
     frame.pack()
     heading = Label(frame, text=title, font=("Arial", 18), background="#00062A", fg="#b4d9f9")
     heading.pack(fill="x")
-    error = Label(frame, background="#00062A", fg="red")
+    if warning is None:
+        error = Label(frame, background="#00062A", fg="red")
+    else:
+        error = Label(frame, text=warning, background="#00062A", fg="red")
     error.pack()
     answers = list()
     for question in enumerate(questions):

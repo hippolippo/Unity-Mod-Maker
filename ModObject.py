@@ -7,12 +7,18 @@ import os
 import subprocess
 from tkinter import *
 
+VERSION = "dev 0.1.0"
+
 
 class ModObject:
 
-    def __init__(self, mod_name="mod", version="1.0.0", poly_tech=True):
+    def __init__(self, mod_name="mod", version="1.0.0", poly_tech=True, game="Poly Bridge 2",
+                 steampath="C:\\Program Files (x86)\\Steam\\steamapps\\common\\"):
+        self.mod_maker_version = VERSION
+        self.game = game
+        self.steampath = steampath
         self.config_number = 0
-        self.version = CodeLine(version)
+        self.version = CodeLine(version, locked=True)
         self.poly_tech = poly_tech
         self.mod_name = CodeLine(mod_name, locked=True)
         self.mod_name_no_space = CodeLine(mod_name.replace(" ", ""), locked=True)
@@ -51,6 +57,7 @@ class ModObject:
             self.add_config("mEnabled", "bool", "false", "Enable/Disable Mod",
                             "Controls if the mod should be enabled or disabled")
         self.main_contents = self.class_wrap.contents
+        self.indent()
 
     def add_config(self, name, data_type, default, definition, description=""):
         self.config_entry_declarations.insert_block_after(
@@ -108,10 +115,17 @@ class ModObject:
     def get_text(self):
         return self.code.get_text()
 
+    def get_code_lines(self):
+        return self.code.get_code_lines()
+
     def get_block_list(self):
         return self.code.get_block_list()
+
     def get_list(self):
         return self.code.get_list()
+
+    def indent(self):
+        self.code.default_indent()
 
     def install(self, destroyonerror=None, progress_updater=print):
         progress_updater("Generating Dotnet Files...")
@@ -121,13 +135,13 @@ class ModObject:
         progress_updater("Running Dotnet Build...")
         dotnet_build(path)
         try:
-            os.remove("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Poly Bridge 2\\BepInEx\\plugins\\" +
-                      self.mod_name_no_space.get_text() + ".dll")
+            os.path.join(self.steampath, self.game, "BepInEx\\plugins\\" +
+                         self.mod_name_no_space.get_text() + ".dll")
         except FileNotFoundError:
             pass
         try:
             shutil.move(path + "/bin/Debug/netstandard2.0/" + self.mod_name_no_space.get_text() + ".dll",
-                        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Poly Bridge 2\\BepInEx\\plugins")
+                        os.path.join(self.steampath, self.game))
         except FileNotFoundError:
             if destroyonerror is not None:
                 destroyonerror.destroy()
@@ -141,7 +155,7 @@ class ModObject:
 def create_files(mod: ModObject, destroyonerror=None):
     name_no_space = mod.mod_name_no_space.get_text()
     current_directory = os.getcwd()
-    folder_path = os.path.join(current_directory, "projects/"+name_no_space)
+    folder_path = os.path.join(current_directory, "projects/" + name_no_space)
     try:
         os.mkdir(os.path.join(current_directory, "projects"))
     except FileExistsError:
@@ -195,13 +209,17 @@ def save(mod_object, location="mod.umm"):
 
 
 def load(location="mod.umm"):
-    return pickle.load(open(location, "rb"))
+    mod = pickle.load(open(location, "rb"))
+    if mod.mod_maker_version != VERSION:
+        messagebox.showwarning("Mod From Old Version", "This Mod Was Made in Version " + mod.mod_maker_version +
+                               " and may not function properly in this version (" + VERSION + ")")
+    return
 
 
 def copy(mod_object, name):
     name_no_space = name.replace(" ", "")
     current_directory = os.getcwd()
-    folder_path = os.path.join(current_directory, "projects/"+name_no_space)
+    folder_path = os.path.join(current_directory, "projects/" + name_no_space)
     try:
         os.mkdir(folder_path)
     except FileExistsError:

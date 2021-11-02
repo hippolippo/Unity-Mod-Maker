@@ -106,7 +106,7 @@ def create_poly_tech_functions(poly_tech=True):
     disable_code = CodeBlock([CodeLine("mEnabled.Value = false;"), CodeLine("this.isEnabled = false;")])
     output.insert_block_after(create_function("public override void disableMod()", contents=disable_code))
     output.insert_block_after(create_function("public override string getSettings()",
-                                              contents=CodeLine("return \"\";")))
+                                              contents=CodeLine("    return \"\";")))
     output.insert_block_after(create_function("public override void setSettings(string settings)"))
     return output
 

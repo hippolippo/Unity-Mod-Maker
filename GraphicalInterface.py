@@ -11,9 +11,11 @@ import pyro
 window_count = 0
 can_make_menu = True
 
+
 def set_window_count(x):
     global window_count
     window_count = x
+
 
 def get_window_count():
     global window_count
@@ -23,7 +25,10 @@ def get_window_count():
 def close(menu):
     global can_make_menu
     can_make_menu = True
-    menu.root.destroy()
+    try:
+        menu.root.destroy()
+    except TclError:
+        pass
 
 
 class InterfaceMenu:
@@ -89,7 +94,8 @@ class InterfaceMenu:
         pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod)
 
     def load(self, e):
-        create_prompt("Load Mod", ("Mod Name",), self.load_fallback, None)
+        create_prompt("Load Mod", ("Mod Name",), self.load_fallback, None,
+                      warning="Never Open Mods From Untrusted Sources")
 
 
 def find_changes(old, new):
