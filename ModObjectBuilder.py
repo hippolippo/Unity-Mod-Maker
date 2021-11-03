@@ -114,10 +114,17 @@ def create_poly_tech_functions(poly_tech=True):
 def create_awake(mod_name, mod_name_no_space, poly_tech=True):
     output = LargeCodeBlockWrapper()
     if poly_tech:
+        output.insert_block_after(CodeLine("this.repositoryUrl = \"\";"))
+        output.insert_block_after(CodeLine("this.isCheat = true;"))
+        output.insert_block_after(CodeLine("PolyTechMain.registerMod(this);"))
         output.insert_block_after(CodeBlock([CodeLine("Logger.LogInfo(\""), mod_name,
-                                             CodeLine(" Methods Patched\");")],
+                                             CodeLine(" Registered\");")],
                                             delimiter=""))
     output.insert_block_after(CodeBlock([CodeLine("Harmony.CreateAndPatchAll(typeof("), mod_name_no_space,
                                          CodeLine("));")], delimiter=""))
+    if poly_tech:
+        output.insert_block_after(CodeBlock([CodeLine("Logger.LogInfo(\""), mod_name,
+                                             CodeLine(" Methods Patched\");")],
+                                            delimiter=""))
     output = create_function("void Awake()", contents=output)
     return output

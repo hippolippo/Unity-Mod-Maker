@@ -134,14 +134,17 @@ class ModObject:
             return None
         progress_updater("Running Dotnet Build...")
         dotnet_build(path)
+        '''# I don't remember why I wrote this so I'm just commenting it out for now
         try:
-            os.path.join(self.steampath, self.game, "BepInEx\\plugins\\" +
+            os.path.join(self.steampath, self.game, "BepInEx/plugins/" +
                          self.mod_name_no_space.get_text() + ".dll")
         except FileNotFoundError:
             pass
+        '''
         try:
             shutil.move(path + "/bin/Debug/netstandard2.0/" + self.mod_name_no_space.get_text() + ".dll",
-                        os.path.join(self.steampath, self.game))
+                        os.path.join(self.steampath, self.game, "BepInEx/plugins/" +
+                                     self.mod_name_no_space.get_text() + ".dll"))
         except FileNotFoundError:
             if destroyonerror is not None:
                 destroyonerror.destroy()
@@ -212,7 +215,8 @@ def load(location="mod.umm"):
     mod = pickle.load(open(location, "rb"))
     if mod.mod_maker_version != VERSION:
         messagebox.showwarning("Mod From Old Version", "This Mod Was Made in Version " + mod.mod_maker_version +
-                               " and may not function properly in this version (" + VERSION + ")")
+                               " and may not function properly when converted to this version (" + VERSION + ")")
+        mod.mod_maker_version = VERSION
     return
 
 

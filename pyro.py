@@ -73,6 +73,8 @@
 import os
 import io
 import sys
+
+import ChangeManager
 from GraphicalInterface import *
 import MenuMethods
 from functools import partial
@@ -129,8 +131,6 @@ class CoreUI(object):
         self.markedLine = 0
         self.root = tkinter.Tk()
         self.root.iconbitmap("resources/unitymodmaker.ico")
-        self.root.geometry("1200x700+10+10")
-        self.initialize_menubar()
         self.root.protocol("WM_DELETE_WINDOW", self.destroy_window)
         self.uiconfig()
         self.root.bind("<Key>", self.event_key)
@@ -144,7 +144,10 @@ class CoreUI(object):
         self.bootstrap = [self.recolorize]
         self.loadfile(self.contents)
         self.recolorize()
+        self.root.geometry("1200x700+10+10")
+        self.initialize_menubar()
         self.updatetitlebar()
+        self.mainloop()
 
     def initialize_menubar(self):
         self.menubar = tkinter.Menu(self.root)
@@ -163,7 +166,7 @@ class CoreUI(object):
 
         self.menubar.add_cascade(label="Edit", menu=self.editmenu)
 
-        self.editmenu.add_command(label="")
+        self.editmenu.add_command(label="(Temp) Refresh", command=self.refresh)
 
         self.menubar.add_cascade(label="Create", menu=self.createmenu)
 
@@ -174,6 +177,12 @@ class CoreUI(object):
         self.buildmenu.add_command(label="Generate Dotnet Files", command=partial(MenuMethods.export_dotnet, self.mod))
 
         self.root.config(menu=self.menubar)
+
+    def refresh(self):
+        ChangeManager.update(self.mod, self.text.get("1.0", tkinter.END))
+        self.text.delete("1.0", tkinter.END)
+        self.text.insert("1.0", self.mod.get_text())
+        self.recolorize()
 
     def uiconfig(self):
         """
@@ -454,12 +463,15 @@ class CoreUI(object):
             the classical tkinter event driver loop invocation, after running through any
             startup tasks
         """
-
         for task in self.bootstrap:
             task()
         while True:
             self.root.update()
             self.adjust_cli()
+            box = self.text.get("1.0", tkinter.END)
+            modtext = self.mod.get_text() + "\n"
+            if box != modtext:
+                self.refresh()
 
     def create_tags(self):
         """

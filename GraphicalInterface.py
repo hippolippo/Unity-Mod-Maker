@@ -98,32 +98,5 @@ class InterfaceMenu:
                       warning="Never Open Mods From Untrusted Sources")
 
 
-def find_changes(old, new):
-    i = 0
-    while old[:i] == new[:i] :
-        print(old[:i], new[:i])
-        i += 1
-    i -= 1
-    j = -1
-    while old[j:] == new[j:]:
-        j -= 1
-        print(old[j:], new[j:])
-    j += 1
-    print(old[j:], new[j:])
-    old_end = len(old) + j
-    new_end = len(new) + j
-    start = i
-    change = Change()
-    print(i, old_end)
-    if new_end == i and len(new) > len(old):
-        change.category = "rem"
-        print("rem")
-    if len(old) < len(new):
-        change.category = "add"
-        change.contents = 1
-
-
-
-
 if __name__ == "__main__":
     InterfaceMenu()
