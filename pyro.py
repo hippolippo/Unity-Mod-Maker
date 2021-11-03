@@ -179,9 +179,19 @@ class CoreUI(object):
         self.root.config(menu=self.menubar)
 
     def refresh(self):
-        ChangeManager.update(self.mod, self.text.get("1.0", tkinter.END))
+        index = ChangeManager.update(self.mod, self.text.get("1.0", tkinter.END)[:-1])
+        print(index)
+        text = self.text.get("1.0", tkinter.END).split("\n")
+        a, i = 0, 0
+        while a + len(text[i]) + 1 < index and i < len(text):
+            a += len(text[i])
+            a += 1
+            i += 1
+        j = index - a
         self.text.delete("1.0", tkinter.END)
         self.text.insert("1.0", self.mod.get_text())
+        print(j, i)
+        self.text.mark_set("insert", "%d.%d" % (i + 1, j))
         self.recolorize()
 
     def uiconfig(self):
@@ -468,8 +478,8 @@ class CoreUI(object):
         while True:
             self.root.update()
             self.adjust_cli()
-            box = self.text.get("1.0", tkinter.END)
-            modtext = self.mod.get_text() + "\n"
+            box = self.text.get("1.0", tkinter.END)[:-1]
+            modtext = self.mod.get_text()
             if box != modtext:
                 self.refresh()
 

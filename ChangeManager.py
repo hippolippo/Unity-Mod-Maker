@@ -16,16 +16,17 @@ def update(mod, code):
         back -= 1
     back += 1
     added = code[front:back]
-    delete(mod, front, len(mod_code) + back - front)
+    print(front,back)
+    delete(mod.get_code_lines(), front, len(mod_code) + back - front)
     add(mod, front, added)
+    return front + len(added)
 
 
 def delete(mod, front, amount):
     return [delete_char(mod, front) for i in range(amount)]
 
 
-def delete_char(mod, index):
-    code_lines = mod.get_code_lines()
+def delete_char(code_lines, index):
     accumulator = 0
     i = -1
     while accumulator <= index:
@@ -36,6 +37,9 @@ def delete_char(mod, index):
     accumulator -= len(code_lines[i].get_text())
     sub_index = index - accumulator
     string = [char for char in code_lines[i].get_text()]
+    if len(string) == 0:
+        code_lines.pop(i)
+        return delete_char(code_lines, index)
     string.pop(sub_index)
     string = "".join(string)
     result = code_lines[i].update_contents(string)
