@@ -135,6 +135,8 @@ class CoreUI(object):
         self.uiconfig()
         self.root.bind("<Key>", self.event_key)
         self.root.bind('<Control-KeyPress-q>', self.close)
+        self.root.bind('<Control-KeyPress-z>', self.undo)
+        self.root.bind('<Control-KeyPress-y>', self.redo)
         self.root.bind('<Button>', self.event_mouse)
         self.root.bind('<Configure>', self.event_mouse)
         self.text.bind('<Return>', self.autoindent)
@@ -147,7 +149,23 @@ class CoreUI(object):
         self.root.geometry("1200x700+10+10")
         self.initialize_menubar()
         self.updatetitlebar()
+        self.root.update()
+        self.scroll_data = self.text.yview()
         self.mainloop()
+
+    def undo(self, e):
+        mod = ChangeManager.undo()
+        if mod is not None:
+            self.mod = mod
+            self.refresh(False)
+        return "break"
+
+    def redo(self, e):
+        mod = ChangeManager.redo()
+        if mod is not None:
+            self.mod = mod
+            self.refresh(False)
+        return "break"
 
     def initialize_menubar(self):
         self.menubar = tkinter.Menu(self.root)
@@ -178,21 +196,26 @@ class CoreUI(object):
 
         self.root.config(menu=self.menubar)
 
-    def refresh(self):
-        index = ChangeManager.update(self.mod, self.text.get("1.0", tkinter.END)[:-1])
-        print(index)
+    def refresh(self, updateMod = True):
+        if updateMod:
+            self.scroll_data = self.text.yview()
+            index = ChangeManager.update(self.mod, self.text.get("1.0", tkinter.END)[:-1])
+            self.mod.index = index
+        else:
+            index = self.mod.index
+        self.text.delete("1.0", tkinter.END)
+        self.text.insert("1.0", self.mod.get_text())
         text = self.text.get("1.0", tkinter.END).split("\n")
+        print(text)
         a, i = 0, 0
         while a + len(text[i]) + 1 < index and i < len(text):
             a += len(text[i])
             a += 1
             i += 1
         j = index - a
-        self.text.delete("1.0", tkinter.END)
-        self.text.insert("1.0", self.mod.get_text())
-        print(j, i)
         self.text.mark_set("insert", "%d.%d" % (i + 1, j))
         self.recolorize()
+        self.text.yview_moveto(self.scroll_data[0])
 
     def uiconfig(self):
         """
@@ -214,7 +237,6 @@ class CoreUI(object):
                        }
         self.text = scrolledtext.ScrolledText(master=self.root, **self.uiopts)
         self.text.vbar.configure(
-            width="3m",
             activebackground="#FFD310",
             borderwidth="0",
             background="#68606E",

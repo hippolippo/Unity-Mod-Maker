@@ -42,7 +42,7 @@ def cancel(root, fallback):
 
 def done(root, fallback, answers, error):
     if fallback is not None:
-        x = fallback([i.get() for i in answers])
+        x = fallback([i.get() for i in answers])s
     if x is not None:
         error.configure(text=x)
     else:

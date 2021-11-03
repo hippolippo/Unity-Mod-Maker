@@ -7,13 +7,14 @@ import os
 import subprocess
 from tkinter import *
 
-VERSION = "dev 0.1.0"
+VERSION = "dev 0.1.1"
 
 
 class ModObject:
 
     def __init__(self, mod_name="mod", version="1.0.0", poly_tech=True, game="Poly Bridge 2",
                  steampath="C:\\Program Files (x86)\\Steam\\steamapps\\common\\"):
+        self.index = 0
         self.mod_maker_version = VERSION
         self.game = game
         self.steampath = steampath
@@ -58,6 +59,7 @@ class ModObject:
                             "Controls if the mod should be enabled or disabled")
         self.main_contents = self.class_wrap.contents
         self.indent()
+        self.code.insert_block_after(CodeLine("\n"))
 
     def add_config(self, name, data_type, default, definition, description=""):
         self.config_entry_declarations.insert_block_after(
