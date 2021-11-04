@@ -42,9 +42,7 @@ def update(mod, code, clear_redo=True):
         back -= 1
     back += 1
     added = code[front:back]
-    print(front,back)
-    delete(mod.get_code_lines(), front, len(mod_code) + back - front)
-    add(mod, front, added)
+    print(delete(mod.get_code_lines(), front, len(mod_code) + back - front), add(mod, front, added))
     return front + len(added)
 
 

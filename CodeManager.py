@@ -67,6 +67,7 @@ class CodeBlock:
     def __init__(self, code_lines=[], delimiter="\n"):
         self.lines = code_lines.copy()
         self.delimiter = Delimiter(delimiter)
+        self.default = CodeLine("")
 
     def indent(self):
         if len(self.lines) < 1:
@@ -119,6 +120,8 @@ class CodeBlock:
 
     def get_code_lines(self):
         lines = sum([[line, self.delimiter] for line in self.lines], [])[:-1]
+        if len(lines) == 0:
+            lines = [self.default]
         return lines
 
     def default_indent(self):
@@ -191,6 +194,7 @@ class LargeCodeBlockWrapper:
     def __init__(self, block_list=[], delimiter="\n"):
         self.delimiter = Delimiter(delimiter)
         self.block_list = block_list.copy()
+        self.default = CodeLine("")
 
     def insert_block_after(self, block, after_block=None, position=None):
         if after_block is not None:
@@ -239,6 +243,8 @@ class LargeCodeBlockWrapper:
     def get_code_lines(self):
         lines = sum([block.get_code_lines() + [self.delimiter] for block
                     in self.block_list], [])[:-1]
+        if len(lines) == 0:
+            lines = [self.default]
         return lines
 
     def get_block_list(self):

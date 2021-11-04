@@ -2,8 +2,11 @@ import os
 from tkinter import *
 from tkinter import ttk
 from PIL import ImageTk, Image
+from tkinter import messagebox
+
 from pygments.lexers.dotnet import CSharpLexer
-from pyroprompt import create_prompt
+import pyroprompt
+create_prompt = pyroprompt.create_prompt
 from os.path import exists
 from ModObject import *
 import pyro
@@ -59,7 +62,7 @@ class InterfaceMenu:
 
         self.input.bind('<Return>', self.enter)
 
-        self.root.mainloop()
+        pyro.add_window(self.root)
 
     def enter(self, e):
         mod_name = e.widget.get()
@@ -100,3 +103,4 @@ class InterfaceMenu:
 
 if __name__ == "__main__":
     InterfaceMenu()
+    pyro.mainloop()

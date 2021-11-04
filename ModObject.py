@@ -1,5 +1,6 @@
 import shutil
 from tkinter import messagebox
+
 from ModObjectBuilder import *
 from CodeManager import *
 import pickle
@@ -8,7 +9,8 @@ import subprocess
 from tkinter import *
 
 VERSION = "dev 0.1.1"
-
+windows = []
+def get_windows(): return windows
 
 class ModObject:
 
@@ -73,7 +75,7 @@ class ModObject:
         ))
         self.config_number -= 1
 
-    def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None, ):
+    def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None):
         poly_tech = self.poly_tech
         if result is not None:
             parameters.insert(0, "ref " + result + " __result")
@@ -105,6 +107,9 @@ class ModObject:
             ),
             CodeLine("return true;")
         ]))
+        patch.block_list[-1].contents.indent()
+        patch.indent()
+        patch.indent()
         return patch.block_list[-1].contents.block_list[-1].block_list[0].contents
 
     def set_mod_name(self, new_name):
@@ -135,7 +140,7 @@ class ModObject:
         if path is None:
             return None
         progress_updater("Running Dotnet Build...")
-        dotnet_build(path)
+        build_result = dotnet_build(path)
         '''# I don't remember why I wrote this so I'm just commenting it out for now
         try:
             os.path.join(self.steampath, self.game, "BepInEx/plugins/" +
@@ -150,9 +155,21 @@ class ModObject:
         except FileNotFoundError:
             if destroyonerror is not None:
                 destroyonerror.destroy()
-            messagebox.showerror("Build of mod failed",
+            root = Tk()
+            root.title("Build Failed")
+            root.iconbitmap("resources/unitymodmaker.ico")
+            from tkinter import scrolledtext
+            textbox = scrolledtext.ScrolledText(root)
+            textbox.configure(bg="#191F44", fg="#FFC014",)
+            textbox.insert(1.0, build_result)
+            textbox.pack(fill="both")
+            root.update()
+            global windows
+            windows.append(root)
+            root.focus()
+            '''messagebox.showerror("Build of mod failed",
                                  "The mod failed to build, either there was an error in the code or dotnet is not prope"
-                                 "rly installed. See Command Prompt for Details.")
+                                 "rly installed. See Command Prompt for Details.")'''
             return None
         return True
 
@@ -206,7 +223,8 @@ def create_files(mod: ModObject, destroyonerror=None):
 
 
 def dotnet_build(path):
-    subprocess.run(["dotnet", "build"], cwd=path)
+    command = subprocess.Popen(["dotnet", "build"], cwd=path, shell=True, stdout=subprocess.PIPE)
+    return command.stdout.read()
 
 
 def save(mod_object, location="mod.umm"):
@@ -219,7 +237,7 @@ def load(location="mod.umm"):
         messagebox.showwarning("Mod From Old Version", "This Mod Was Made in Version " + mod.mod_maker_version +
                                " and may not function properly when converted to this version (" + VERSION + ")")
         mod.mod_maker_version = VERSION
-    return
+    return mod
 
 
 def copy(mod_object, name):

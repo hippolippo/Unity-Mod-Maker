@@ -108,6 +108,8 @@ from pygments.lexers.sql import MySqlLexer
 
 from pygments.styles import get_style_by_name
 
+pyros = []
+windows = []
 
 class CoreUI(object):
     """
@@ -151,7 +153,9 @@ class CoreUI(object):
         self.updatetitlebar()
         self.root.update()
         self.scroll_data = self.text.yview()
-        self.mainloop()
+        self.starting()
+        global pyros
+        pyros.append(self)
 
     def undo(self, e):
         mod = ChangeManager.undo()
@@ -184,9 +188,12 @@ class CoreUI(object):
 
         self.menubar.add_cascade(label="Edit", menu=self.editmenu)
 
-        self.editmenu.add_command(label="(Temp) Refresh", command=self.refresh)
+        self.editmenu.add_command(label="Change Mod Name", command=partial(MenuMethods.change_mod_name, self.mod, self))
+        self.editmenu.add_command(label="Change Mod Version", command=partial(MenuMethods.change_mod_version, self.mod, self))
 
         self.menubar.add_cascade(label="Create", menu=self.createmenu)
+
+        self.createmenu.add_command(label="Create Harmony Patch", command=partial(MenuMethods.create_harmony_patch, self.mod, self))
 
         self.menubar.add_cascade(label="Build", menu=self.buildmenu)
 
@@ -490,20 +497,13 @@ class CoreUI(object):
 
     # ---------------------------------------------------------------------------------------
 
-    def mainloop(self):
+    def starting(self):
         """
             the classical tkinter event driver loop invocation, after running through any
             startup tasks
         """
         for task in self.bootstrap:
             task()
-        while True:
-            self.root.update()
-            self.adjust_cli()
-            box = self.text.get("1.0", tkinter.END)[:-1]
-            modtext = self.mod.get_text()
-            if box != modtext:
-                self.refresh()
 
     def create_tags(self):
         """
@@ -602,4 +602,34 @@ if __name__ == "__main__":
         ui_core = CoreUI(lexer=MySqlLexer())
     else:
         ui_core = CoreUI(lexer=PythonLexer())  # default (no extension) lexer is python
-    ui_core.mainloop()
+
+
+def add_window(window):
+    global windows
+    windows.append(window)
+
+
+def mainloop():
+    global pyros
+    global windows
+    while True:
+        for pyro in pyros:
+            try:
+                pyro.root.update()
+                pyro.adjust_cli()
+                box = pyro.text.get("1.0", tkinter.END)[:-1]
+                modtext = pyro.mod.get_text()
+                if box != modtext:
+                    pyro.refresh()
+            except Exception:
+                pass
+        for window in windows:
+            try:
+                window.update()
+            except Exception:
+                pass
+        for window in get_windows():
+            try:
+                window.update()
+            except Exception:
+                pass

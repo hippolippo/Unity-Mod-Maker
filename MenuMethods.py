@@ -7,6 +7,7 @@ import os
 from ModObject import ModObject
 import ModObject
 from tkinter import *
+import ChangeManager
 from pygments.lexers.dotnet import CSharpLexer
 
 
@@ -24,7 +25,7 @@ def _new_fallback(name):
     name = name[0]
     if exists(os.getcwd() + "/projects/" + name.replace(" ", "")):
         return "Project Already Exists"
-    mod = ModObject(name.replace(" ", ""))
+    mod = ModObject.ModObject(name.replace(" ", ""))
     pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod)
 
 
@@ -92,3 +93,31 @@ def export_dotnet(mod, independent=True):
             root.destroy()
             messagebox.showinfo("Success", "Files Created Successfully")
         return root
+
+def _change_name_fallback(mod, window, name):
+    ChangeManager.log_action(mod, True)
+    mod.set_mod_name(name[0])
+    window.refresh(False)
+
+def change_mod_name(mod, window):
+    create_prompt("Rename Mod", ("New Name",), partial(_change_name_fallback, mod, window), None)
+
+def _change_version_fallback(mod, window, name):
+    ChangeManager.log_action(mod, True)
+    mod.set_version(name[0])
+    window.refresh(False)
+
+def change_mod_version(mod, window):
+    create_prompt("Change Mod Version", ("New Version",), partial(_change_version_fallback, mod, window), None)
+
+def _harmony_patch_fallback(mod, window, values):
+    # def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None):
+    ChangeManager.log_action(mod, True)
+    mod.create_harmony_patch(values[1], values[0], prefix=values[3] == "Prefix", parameters=values[2].split(","),
+                             have_instance=values[5] != "False",result=values[4] if values[4] != "None" else None)
+    window.refresh(False)
+
+def create_harmony_patch(mod, window):
+    create_prompt("Create Harmony Patch", ("Function Name", "Function's Class", "Parameters (separate by comma)",
+                                           "Prefix/Postfix", "Return Type", "Have Instance?"), partial(_harmony_patch_fallback, mod, window), None,
+                  defaults={"Prefix/Postfix": "Prefix", "Return Type": "None", "Have Instance?": "False"})
