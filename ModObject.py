@@ -14,11 +14,12 @@ def get_windows(): return windows
 
 class ModObject:
 
-    def __init__(self, mod_name="mod", version="1.0.0", poly_tech=True, game="Poly Bridge 2",
+    def __init__(self, mod_name="mod", version="1.0.0", poly_tech=True, game="Poly Bridge 2", folder_name=None,
                  steampath="C:\\Program Files (x86)\\Steam\\steamapps\\common\\"):
         self.index = 0
         self.mod_maker_version = VERSION
         self.game = game
+        self.folder_name = self.game if folder_name is None else folder_name
         self.steampath = steampath
         self.config_number = 0
         self.version = CodeLine(version, locked=True)
@@ -30,7 +31,7 @@ class ModObject:
         self.code.insert_block_before(self.header)
         self.namespace = create_namespace(self.mod_name, self.mod_name_no_space)
         self.code.insert_block_after(self.namespace)
-        self.in_namespace = create_namespace_contents(poly_tech=self.poly_tech)
+        self.in_namespace = create_namespace_contents(self.game, poly_tech=self.poly_tech)
         self.namespace.contents = self.in_namespace
         self.class_wrap = create_class(self.mod_name, self.mod_name_no_space, poly_tech=self.poly_tech)
         self.namespace.contents.insert_block_after(self.class_wrap)
@@ -56,9 +57,8 @@ class ModObject:
         self.class_wrap.contents.insert_block_after(self.class_constructor)
         self.awake = create_awake(self.mod_name, self.mod_name_no_space, poly_tech=self.poly_tech)
         self.class_wrap.contents.insert_block_after(self.awake)
-        if poly_tech:
-            self.add_config("mEnabled", "bool", "false", "Enable/Disable Mod",
-                            "Controls if the mod should be enabled or disabled")
+        self.add_config("mEnabled", "bool", "false", "Enable/Disable Mod",
+                        "Controls if the mod should be enabled or disabled")
         self.main_contents = self.class_wrap.contents
         self.indent()
         self.code.insert_block_after(CodeLine("\n"))
@@ -150,8 +150,16 @@ class ModObject:
         '''
         try:
             shutil.move(path + "/bin/Debug/netstandard2.0/" + self.mod_name_no_space.get_text() + ".dll",
-                        os.path.join(self.steampath, self.game, "BepInEx/plugins/" +
+                        os.path.join(self.steampath, self.folder_name, "BepInEx/plugins/" +
                                      self.mod_name_no_space.get_text() + ".dll"))
+            shutil.copyfile(os.path.join(os.getcwd(), "resources/Default Libraries/ConfigurationManager.dll"),
+                            os.path.join(self.steampath, self.folder_name, "BepInEx/plugins/ConfigurationManager.dll"))
+            shutil.copyfile(os.path.join(os.getcwd(), "resources/Default Libraries/netstandard.dll"),
+                            os.path.join(self.steampath, self.folder_name, "BepInEx/plugins/netstandard.dll"))
+
+            '''shutil.move(os.path.join(os.getcwd(), "resources/Default Libraries/ConfigurationManager.dll"),
+                        os.path.join(self.steampath, self.folder_name, "BepInEx/plugins/" +
+                                     self.mod_name_no_space.get_text() + ".dll"))'''
         except FileNotFoundError:
             if destroyonerror is not None:
                 destroyonerror.destroy()
@@ -201,22 +209,24 @@ def create_files(mod: ModObject, destroyonerror=None):
         f.write(code)
 
     try:
-        shutil.copytree("C:/Program Files (x86)/Steam/steamapps/common/Poly Bridge 2/Poly Bridge 2_Data/Managed",
+
+        shutil.copytree(os.path.join(mod.steampath, mod.folder_name, mod.game + "_Data", "Managed"),
                         folder_path + "\\Libraries", dirs_exist_ok=True)
-        shutil.copytree("C:/Program Files (x86)/Steam/steamapps/common/Poly Bridge 2/BepInEx/core",
+        shutil.copytree(os.path.join(mod.steampath, mod.folder_name, "BepInEx/core"),
+                        folder_path + "\\Libraries", dirs_exist_ok=True)
+        shutil.copytree(os.path.join(os.getcwd(), "resources/Default Libraries"),
                         folder_path + "\\Libraries", dirs_exist_ok=True)
         if mod.poly_tech:
-            shutil.copytree("C:/Program Files (x86)/Steam/steamapps/common/Poly Bridge "
-                            "2/BepInEx/plugins",
+            shutil.copytree(os.path.join(mod.steampath, mod.folder_name, "BepInEx/plugins"),
                             folder_path + "\\Libraries", dirs_exist_ok=True)
     except FileNotFoundError as e:
         print(e)
-        print("ERROR: Could not create mod files, make sure Poly Bridge 2 is installed with BepInEx" +
+        print("ERROR: Could not create mod files, make sure " + mod.game + " is installed with BepInEx" +
               " and Polytech" if mod.poly_tech else "")
         if destroyonerror is not None:
             destroyonerror.destroy()
         messagebox.showerror("Could Not Create Mod Files",
-                             "Couldn't Create Mod File, Make sure Poly Bridge 2 is Installed with BepInEx" +
+                             "Couldn't Create Mod File, Make sure " + mod.game + " is installed with BepInEx" +
                              " and Polytech" if mod.poly_tech else "")
         return None
     return folder_path

@@ -111,6 +111,7 @@ from pygments.styles import get_style_by_name
 pyros = []
 windows = []
 
+
 class CoreUI(object):
     """
         CoreUI is the editor object, derived from class 'object'. It's instantiation initilizer requires the
@@ -119,7 +120,7 @@ class CoreUI(object):
     """
 
     def __init__(self, lexer, filename="Untitled", mod=None):
-        set_window_count(get_window_count()+1)
+        set_window_count(get_window_count() + 1)
         self.filename = filename
         if mod is None:
             mod = ModObject("Untitled")
@@ -183,27 +184,29 @@ class CoreUI(object):
 
         self.filemenu.add_command(label="New", command=MenuMethods.new)
         self.filemenu.add_command(label="Open", command=MenuMethods.open)
-        self.filemenu.add_command(label="Save", command=partial(MenuMethods.save, self.mod, self.filename))
-        self.filemenu.add_command(label="Save as Renamed Copy", command=partial(MenuMethods.copy, self.mod))
+        self.filemenu.add_command(label="Save", command=partial(MenuMethods.save, self, self.filename))
+        self.filemenu.add_command(label="Save as Renamed Copy", command=partial(MenuMethods.copy, self))
 
         self.menubar.add_cascade(label="Edit", menu=self.editmenu)
 
-        self.editmenu.add_command(label="Change Mod Name", command=partial(MenuMethods.change_mod_name, self.mod, self))
-        self.editmenu.add_command(label="Change Mod Version", command=partial(MenuMethods.change_mod_version, self.mod, self))
+        self.editmenu.add_command(label="Change Mod Name", command=partial(MenuMethods.change_mod_name, self))
+        self.editmenu.add_command(label="Change Mod Version",
+                                  command=partial(MenuMethods.change_mod_version, self))
 
         self.menubar.add_cascade(label="Create", menu=self.createmenu)
 
-        self.createmenu.add_command(label="Create Harmony Patch", command=partial(MenuMethods.create_harmony_patch, self.mod, self))
+        self.createmenu.add_command(label="Create Harmony Patch",
+                                    command=partial(MenuMethods.create_harmony_patch, self))
 
         self.menubar.add_cascade(label="Build", menu=self.buildmenu)
 
-        self.buildmenu.add_command(label="Build and Install", command=partial(MenuMethods.build_install, self.mod))
-        self.buildmenu.add_command(label="Export C# File", command=partial(MenuMethods.export_cs, self.mod))
-        self.buildmenu.add_command(label="Generate Dotnet Files", command=partial(MenuMethods.export_dotnet, self.mod))
+        self.buildmenu.add_command(label="Build and Install", command=partial(MenuMethods.build_install, self))
+        self.buildmenu.add_command(label="Export C# File", command=partial(MenuMethods.export_cs, self))
+        self.buildmenu.add_command(label="Generate Dotnet Files", command=partial(MenuMethods.export_dotnet, self))
 
         self.root.config(menu=self.menubar)
 
-    def refresh(self, updateMod = True):
+    def refresh(self, updateMod=True):
         if updateMod:
             self.scroll_data = self.text.yview()
             index = ChangeManager.update(self.mod, self.text.get("1.0", tkinter.END)[:-1])
@@ -213,7 +216,6 @@ class CoreUI(object):
         self.text.delete("1.0", tkinter.END)
         self.text.insert("1.0", self.mod.get_text())
         text = self.text.get("1.0", tkinter.END).split("\n")
-        print(text)
         a, i = 0, 0
         while a + len(text[i]) + 1 < index and i < len(text):
             a += len(text[i])
@@ -409,7 +411,7 @@ class CoreUI(object):
                 if cmd.count("\n") > 1:
                     exec(cmd[1:])
                 else:
-                    print("User Command Executed", "("+cmd[1:-1]+")", "Gives:", eval(cmd[1:]))
+                    print("User Command Executed", "(" + cmd[1:-1] + ")", "Gives:", eval(cmd[1:]))
                 self.root.update()
             except Exception as e:
                 print(e)
@@ -418,8 +420,8 @@ class CoreUI(object):
 
     def adjust_cli(self, event=None):
         height = self.cli.cget("height")
-        if min(self.cli.get("1.0", tkinter.END).count("\n"),25) != height:
-            self.cli.config(height=min(self.cli.get("1.0", tkinter.END).count("\n"),25))
+        if min(self.cli.get("1.0", tkinter.END).count("\n"), 25) != height:
+            self.cli.config(height=min(self.cli.get("1.0", tkinter.END).count("\n"), 25))
 
     def autoindent(self, event):
         """
@@ -489,7 +491,7 @@ class CoreUI(object):
         # self.recolorize()
 
     def close(self, event=None):
-        set_window_count(get_window_count()-1)
+        set_window_count(get_window_count() - 1)
         self.root.destroy()
         if get_window_count() <= 0:
             set_window_count(0)

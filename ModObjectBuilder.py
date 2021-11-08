@@ -36,13 +36,20 @@ def create_namespace(mod_name, mod_name_no_space):
     return namespace
 
 
-def create_namespace_contents(poly_tech=True):
+def create_namespace_contents(game, poly_tech=True):
     namespace_contents = LargeCodeBlockWrapper()
     bix_dependencies = CodeBlock()
     bix_dependencies.add_line(code_line=CodeLine("[BepInPlugin(pluginGuid, pluginName, pluginVersion)]"))
     if poly_tech:
         bix_dependencies.add_line(code_line=CodeLine(
             "[BepInDependency(PolyTechMain.PluginGuid, BepInDependency.DependencyFlags.HardDependency)]"
+        ))
+    else:
+        bix_dependencies.add_line(code_line=CodeLine(
+            "[BepInProcess(\"" + game + "\")]"
+        ))
+        bix_dependencies.add_line(code_line=CodeLine(
+            "[BepInDependency(ConfigurationManager.ConfigurationManager.GUID, BepInDependency.DependencyFlags.HardDependency)]"
         ))
     namespace_contents.insert_block_before(bix_dependencies)
     namespace_contents.insert_block_after(LargeCodeBlockWrapper())
@@ -61,6 +68,8 @@ def create_class(mod_name, mod_name_no_space, poly_tech=True):
     )
     if poly_tech:
         output.prefix.add_line(CodeLine(": PolyTechMod"), location=2)
+    else:
+        output.prefix.add_line(CodeLine(": BaseUnityPlugin"), location=2)
     return output
 
 

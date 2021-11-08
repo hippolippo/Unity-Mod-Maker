@@ -5,11 +5,13 @@ undo_stack = []
 redo_stack = []
 MAX_UNDO_STACK_SIZE = 0
 
+
 def undo():
     global undo_stack, redo_stack
     if len(undo_stack) == 0: return None
     redo_stack.append(undo_stack.pop(-1))
     return redo_stack[-1]
+
 
 def redo():
     global undo_stack, redo_stack
@@ -17,11 +19,13 @@ def redo():
     undo_stack.append(redo_stack.pop(-1))
     return undo_stack[-1]
 
+
 def log_action(mod, clear_redo):
     global undo_stack, redo_stack
     if clear_redo:
         redo_stack = []
     undo_stack.append(copy.deepcopy(mod))
+
 
 def update(mod, code, clear_redo=True):
     log_action(mod, clear_redo)
@@ -42,7 +46,8 @@ def update(mod, code, clear_redo=True):
         back -= 1
     back += 1
     added = code[front:back]
-    print(delete(mod.get_code_lines(), front, len(mod_code) + back - front), add(mod, front, added))
+    delete(mod.get_code_lines(), front, len(mod_code) + back - front)
+    add(mod, front, added)
     return front + len(added)
 
 

@@ -26,8 +26,8 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>Libraries/UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="Vectrosity">
-      <HintPath>Libraries/Vectrosity.dll</HintPath>
+    <Reference Include="ConfigurationManager">
+      <HintPath>Libraries\ConfigurationManager.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

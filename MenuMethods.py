@@ -21,6 +21,7 @@ def create_loading_screen(message="Please Wait..."):
     root.update()
     return root, x
 
+
 def _new_fallback(name):
     name = name[0]
     if exists(os.getcwd() + "/projects/" + name.replace(" ", "")):
@@ -48,9 +49,9 @@ def open():
     create_prompt("Load Mod", ("Mod Name",), _open_fallback, None)
 
 
-def save(mod, filename):
+def save(window, filename):
     current_directory = os.getcwd()
-    folder_path = os.path.join(current_directory, "projects/"+filename)
+    folder_path = os.path.join(current_directory, "projects/" + filename)
     try:
         os.mkdir(os.path.join(current_directory, "projects"))
     except FileExistsError:
@@ -59,65 +60,73 @@ def save(mod, filename):
         os.mkdir(folder_path)
     except FileExistsError:
         pass
-    ModObject.save(mod, location=folder_path + "/" + filename + ".umm")
+    ModObject.save(window.mod, location=folder_path + "/" + filename + ".umm")
 
 
-def _copy_fallback(mod, name):
+def _copy_fallback(window, name):
     name = name[0]
-    ModObject.copy(mod, name)
+    ModObject.copy(window.mod, name)
 
 
-def copy(mod):
-    create_prompt("Copy Mod", ("New Mod Name",), partial(_copy_fallback, mod), None)
+def copy(window):
+    create_prompt("Copy Mod", ("New Mod Name",), partial(_copy_fallback, window), None)
 
 
-def build_install(mod):
+def build_install(window):
     root, text = create_loading_screen()
 
     def set_text(x):
         text.configure(text=x)
         root.update()
-    if mod.install(destroyonerror=root, progress_updater=set_text):
+
+    if window.mod.install(destroyonerror=root, progress_updater=set_text):
         root.destroy()
         messagebox.showinfo("Success", "Mod Successfully Installed")
 
 
-def export_cs(mod):
+def export_cs(window):
     return
 
 
-def export_dotnet(mod, independent=True):
+def export_dotnet(window, independent=True):
     root = create_loading_screen("Generating Dotnet Files...")[0]
-    if ModObject.create_files(mod, destroyonerror=root) is not None:
+    if ModObject.create_files(window.mod, destroyonerror=root) is not None:
         if independent:
             root.destroy()
             messagebox.showinfo("Success", "Files Created Successfully")
         return root
 
-def _change_name_fallback(mod, window, name):
-    ChangeManager.log_action(mod, True)
-    mod.set_mod_name(name[0])
+
+def _change_name_fallback(window, name):
+    ChangeManager.log_action(window.mod, True)
+    window.mod.set_mod_name(name[0])
     window.refresh(False)
 
-def change_mod_name(mod, window):
-    create_prompt("Rename Mod", ("New Name",), partial(_change_name_fallback, mod, window), None)
 
-def _change_version_fallback(mod, window, name):
-    ChangeManager.log_action(mod, True)
-    mod.set_version(name[0])
+def change_mod_name(window):
+    create_prompt("Rename Mod", ("New Name",), partial(_change_name_fallback, window), None)
+
+
+def _change_version_fallback(window, name):
+    ChangeManager.log_action(window.mod, True)
+    window.mod.set_version(name[0])
     window.refresh(False)
 
-def change_mod_version(mod, window):
-    create_prompt("Change Mod Version", ("New Version",), partial(_change_version_fallback, mod, window), None)
 
-def _harmony_patch_fallback(mod, window, values):
+def change_mod_version(window):
+    create_prompt("Change Mod Version", ("New Version",), partial(_change_version_fallback, window), None)
+
+
+def _harmony_patch_fallback(window, values):
     # def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None):
-    ChangeManager.log_action(mod, True)
-    mod.create_harmony_patch(values[1], values[0], prefix=values[3] == "Prefix", parameters=values[2].split(","),
-                             have_instance=values[5] != "False",result=values[4] if values[4] != "None" else None)
+    ChangeManager.log_action(window.mod, True)
+    window.mod.create_harmony_patch(values[1], values[0], prefix=values[3] == "Prefix", parameters=values[2].split(","),
+                             have_instance=values[5] != "False", result=values[4] if values[4] != "None" else None)
     window.refresh(False)
 
-def create_harmony_patch(mod, window):
+
+def create_harmony_patch(window):
     create_prompt("Create Harmony Patch", ("Function Name", "Function's Class", "Parameters (separate by comma)",
-                                           "Prefix/Postfix", "Return Type", "Have Instance?"), partial(_harmony_patch_fallback, mod, window), None,
+                                           "Prefix/Postfix", "Return Type", "Have Instance?"),
+                  partial(_harmony_patch_fallback, window), None,
                   defaults={"Prefix/Postfix": "Prefix", "Return Type": "None", "Have Instance?": "False"})
