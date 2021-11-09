@@ -59,23 +59,38 @@ class ModObject:
         )
         self.class_wrap.contents.insert_block_after(self.class_constructor)
         self.awake = create_awake(self.mod_name, self.mod_name_no_space, poly_tech=self.poly_tech)
+        self.update = create_update(self.mod_name, self.mod_name_no_space, poly_tech=self.poly_tech)
         self.class_wrap.contents.insert_block_after(self.awake)
+        self.class_wrap.contents.insert_block_after(self.update)
         self.add_config("mEnabled", "bool", "false", "Enable/Disable Mod",
-                        "Controls if the mod should be enabled or disabled")
+                        "Controls if the mod should be enabled or disabled", should_indent=False)
         self.main_contents = self.class_wrap.contents
         self.indent()
         self.code.insert_block_after(CodeLine("\n"))
 
-    def add_config(self, name, data_type, default, definition, description=""):
-        self.config_entry_declarations.insert_block_after(
-            CodeLine("public static ConfigEntry<" + data_type + "> " + name + ";"))
-        self.config_definitions.insert_block_after(CodeLine(
-            "public ConfigDefinition " + name + "Def = new ConfigDefinition(pluginVersion, \"" + definition + "\");"))
-        self.class_constructor.contents.insert_block_after(CodeLine(
-            name + " = " +
-            "Config.Bind(" + name + "Def, " + default + ", new ConfigDescription(\"" + description +
-            "\", null, new ConfigurationManagerAttributes {Order = " + str(self.config_number) + "}));"
-        ))
+    def add_config(self, name, data_type, default, definition, description="", should_indent=True):
+        if should_indent:
+            self.config_entry_declarations.insert_block_after(
+                CodeLine("public static ConfigEntry<" + data_type + "> " + name + ";").indent().indent())
+            self.config_definitions.insert_block_after(CodeLine(
+                "public ConfigDefinition " + name + "Def = new ConfigDefinition(pluginVersion, \"" + definition
+                + "\");").indent().indent())
+            self.class_constructor.contents.insert_block_after(CodeLine(
+                name + " = " +
+                "Config.Bind(" + name + "Def, " + default + ", new ConfigDescription(\"" + description +
+                "\", null, new ConfigurationManagerAttributes {Order = " + str(self.config_number) + "}));"
+            ).indent().indent().indent())
+        else:
+            self.config_entry_declarations.insert_block_after(
+                CodeLine("public static ConfigEntry<" + data_type + "> " + name + ";"))
+            self.config_definitions.insert_block_after(CodeLine(
+                "public ConfigDefinition " + name + "Def = new ConfigDefinition(pluginVersion, \"" + definition
+                + "\");"))
+            self.class_constructor.contents.insert_block_after(CodeLine(
+                name + " = " +
+                "Config.Bind(" + name + "Def, " + default + ", new ConfigDescription(\"" + description +
+                "\", null, new ConfigurationManagerAttributes {Order = " + str(self.config_number) + "}));"
+            ))
         self.config_number -= 1
 
     def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None):

@@ -163,10 +163,13 @@ def change_mod_version(window):
 
 def _harmony_patch_fallback(window, values):
     # def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None):
+    scroll_data = window.text.yview()
     ChangeManager.log_action(window.mod, True)
     window.mod.create_harmony_patch(values[1], values[0], prefix=values[3] == "Prefix", parameters=values[2].split(","),
-                             have_instance=values[5] != "False", result=values[4] if values[4] != "None" else None)
+                                    have_instance=values[5] != "False",
+                                    result=values[4] if values[4] != "None" else None)
     window.refresh(False)
+    window.text.yview_moveto(scroll_data[0])
 
 
 def create_harmony_patch(window):
@@ -174,3 +177,17 @@ def create_harmony_patch(window):
                                            "Prefix/Postfix", "Return Type", "Have Instance?"),
                   partial(_harmony_patch_fallback, window), None,
                   defaults={"Prefix/Postfix": "Prefix", "Return Type": "None", "Have Instance?": "False"})
+
+
+def _config_item_fallback(window, values):
+    scroll_data = window.text.yview()
+    ChangeManager.log_action(window.mod, True)
+    window.mod.add_config(values[0], values[1], values[2], values[3], values[4])
+    window.refresh(False)
+    window.text.yview_moveto(scroll_data[0])
+
+
+def create_config_item(window):
+    create_prompt("Create Config Item", ("Variable Name", "Data Type (e.g. int)", "Default Value (C# formatting)",
+                                         "Definition (Name in List)", "Description (Info When Hovered Over)"),
+                  partial(_config_item_fallback, window), None)

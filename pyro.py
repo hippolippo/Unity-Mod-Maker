@@ -198,6 +198,8 @@ class CoreUI(object):
 
         self.createmenu.add_command(label="Create Harmony Patch",
                                     command=partial(MenuMethods.create_harmony_patch, self))
+        self.createmenu.add_command(label="Create Config Item",
+                                    command=partial(MenuMethods.create_config_item, self))
 
         self.menubar.add_cascade(label="Build", menu=self.buildmenu)
 

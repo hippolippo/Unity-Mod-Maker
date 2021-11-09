@@ -115,7 +115,7 @@ def create_poly_tech_functions(poly_tech=True):
     disable_code = CodeBlock([CodeLine("mEnabled.Value = false;"), CodeLine("this.isEnabled = false;")])
     output.insert_block_after(create_function("public override void disableMod()", contents=disable_code))
     output.insert_block_after(create_function("public override string getSettings()",
-                                              contents=CodeLine("    return \"\";")))
+                                              contents=CodeLine("return \"\";")))
     output.insert_block_after(create_function("public override void setSettings(string settings)"))
     return output
 
@@ -136,4 +136,12 @@ def create_awake(mod_name, mod_name_no_space, poly_tech=True):
                                              CodeLine(" Methods Patched\");")],
                                             delimiter=""))
     output = create_function("void Awake()", contents=output)
+    return output
+
+
+def create_update(mod_name, mod_name_no_space, poly_tech=True):
+    output = LargeCodeBlockWrapper()
+    if poly_tech:
+        pass
+    output = create_function("void Update()", contents=output)
     return output

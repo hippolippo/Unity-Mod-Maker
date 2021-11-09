@@ -4,12 +4,15 @@ import operator
 
 class CodeLine:
 
-    def __init__(self, code, locked=False):
+    def __init__(self, code, locked=False, should_indent=True):
+        self.should_indent = should_indent
         self.code = code
         self.locked = locked
 
     def indent(self):
-        self.code = "    " + self.code
+        if self.should_indent:
+            self.code = "    " + self.code
+        return self
 
     def __repr__(self):
         return "\"" + self.code + "\""
@@ -54,7 +57,8 @@ class CodeLine:
 
 
 class Delimiter(CodeLine):
-    def __init__(self, code):
+    def __init__(self, code, should_indent=True):
+        self.should_indent = should_indent
         self.code = code
         self.locked = True
 
@@ -64,19 +68,22 @@ class Delimiter(CodeLine):
 
 class CodeBlock:
 
-    def __init__(self, code_lines=[], delimiter="\n"):
+    def __init__(self, code_lines=[], delimiter="\n", should_indent=True):
+        self.should_indent = should_indent
         self.lines = code_lines.copy()
         self.delimiter = Delimiter(delimiter)
         self.default = CodeLine("")
 
     def indent(self):
-        if len(self.lines) < 1:
-            return
-        self.lines[0].indent()
-        if len(self.lines) < 2:
-            return
-        if self.delimiter.get_text() == "\n":
-            [line.indent() for line in self.lines[1:]]
+        if self.should_indent:
+            if len(self.lines) < 1:
+                return self
+            self.lines[0].indent()
+            if len(self.lines) < 2:
+                return self
+            if self.delimiter.get_text() == "\n":
+                [line.indent() for line in self.lines[1:]]
+        return self
 
     def __add__(self, other):
         return CodeBlock(self.lines + other.lines)
@@ -130,7 +137,9 @@ class CodeBlock:
 
 class CodeBlockWrapper:
 
-    def __init__(self, prefix=CodeBlock(), postfix=CodeBlock(), contents=CodeBlock(), delimiter="\n", indented=None):
+    def __init__(self, prefix=CodeBlock(), postfix=CodeBlock(), contents=CodeBlock(), delimiter="\n", indented=None,
+                 should_indent=True):
+        self.should_indent = should_indent
         if indented is None and delimiter == "\n":
             indented = True
         elif indented is None:
@@ -142,10 +151,12 @@ class CodeBlockWrapper:
         self.contents = contents
 
     def indent(self):
-        self.prefix.indent()
-        if self.delimiter.get_text() == "\n":
-            self.contents.indent()
-            self.postfix.indent()
+        if self.should_indent:
+            self.prefix.indent()
+            if self.delimiter.get_text() == "\n":
+                self.contents.indent()
+                self.postfix.indent()
+        return self
 
     def get_prefix(self):
         return self.prefix
@@ -182,16 +193,19 @@ class CodeBlockWrapper:
         return [self.prefix, self.contents, self.postfix]
 
     def default_indent(self):
-        self.prefix.default_indent()
-        self.contents.default_indent()
-        self.postfix.default_indent()
-        if self.indented:
-            self.contents.indent()
+        if self.should_indent:
+            self.prefix.default_indent()
+            self.contents.default_indent()
+            self.postfix.default_indent()
+            if self.indented:
+                self.contents.indent()
+        return self
 
 
 class LargeCodeBlockWrapper:
 
-    def __init__(self, block_list=[], delimiter="\n"):
+    def __init__(self, block_list=[], delimiter="\n", should_indent=True):
+        self.should_indent = should_indent
         self.delimiter = Delimiter(delimiter)
         self.block_list = block_list.copy()
         self.default = CodeLine("")
@@ -205,13 +219,15 @@ class LargeCodeBlockWrapper:
             self.block_list.insert(position + 1, block)
 
     def indent(self):
-        if len(self.block_list) < 1:
-            return
-        self.block_list[0].indent()
-        if len(self.block_list) < 2:
-            return
-        if self.delimiter.get_text() == "\n":
-            [block.indent() for block in self.block_list[1:]]
+        if self.should_indent:
+            if len(self.block_list) < 1:
+                return self
+            self.block_list[0].indent()
+            if len(self.block_list) < 2:
+                return self
+            if self.delimiter.get_text() == "\n":
+                [block.indent() for block in self.block_list[1:]]
+        return self
 
     def insert_block_before(self, block, after_block=None, position=None):
         if after_block is not None:
@@ -254,4 +270,6 @@ class LargeCodeBlockWrapper:
         return self.block_list
 
     def default_indent(self):
-        [block.default_indent() for block in self.block_list]
+        if self.should_indent:
+            [block.default_indent() for block in self.block_list]
+        return self
