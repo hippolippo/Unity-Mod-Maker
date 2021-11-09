@@ -110,7 +110,8 @@ class ModObject:
         ))
         patch.insert_block_after(CodeBlockWrapper(
             prefix=CodeLine(
-                "private static bool " + in_class.replace("_", "") + method +
+                "private " + ("static " if not have_instance else "") + ("bool" if prefix else "void") + " " +
+                                                                 in_class.replace("_", "") + method +
                 ("Prefix" if prefix else "Postfix") +
                 "Patch(" +
                 ", ".join(parameters) + "){"
@@ -120,8 +121,10 @@ class ModObject:
         ))
         patch.block_list[-1].contents.insert_block_after(LargeCodeBlockWrapper([
             CodeBlockWrapper(
-                prefix=CodeLine("if(mEnabled.Value){" if poly_tech else ""),
-                postfix=end_block() if poly_tech else CodeLine("")
+                prefix=CodeLine("if(mEnabled.Value){"),
+                contents=CodeBlock([CodeLine("//__result = null;"), CodeLine("return false;")]
+                                   if result is not None else [CodeLine("return false;")]).indent(),
+                postfix=end_block()
             ),
             CodeLine("return true;")
         ]))
