@@ -104,17 +104,26 @@ class InterfaceMenu:
 
     # See the new function, this is the function that gets called when the prompt from the new function has "done"
     # clicked
-    def new_fallback(self, name):
-        # name is a list of values but it is only one long so just replace it with the first item
-        name = name[0]
+    def new_fallback(self, data):
+        # first item in the list is the name of the mod
+        name = data[0]
         # check if there is a directory that corresponds to a mod with this name
         # (spaces aren't included in the file names)
         if exists(os.getcwd() + "/projects/" + name.replace(" ", "")):
             # When the fallback to a prompt returns something, the prompt will show that as an error message and
             # keep itself open effectively asking them again
             return "Project Already Exists"
-        # creates a new mod with this name
-        mod = ModObject(name)
+        # Decide whether the mod should use polytech
+        poly_tech = data[3]
+        if poly_tech.lower() == "true":
+            poly_tech = True
+        elif poly_tech.lower() == "false":
+            poly_tech = False
+        else:
+            poly_tech = data[1] == "Poly Bridge 2"
+        # creates a new mod with this name and information from the prompt
+        mod = ModObject(name, poly_tech=poly_tech, game=data[1], folder_name=None if data[2] == "" else data[2],
+                        steampath=data[4])
         # close the menu window because we don't need it anymore
         close(self)
         # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
@@ -123,7 +132,15 @@ class InterfaceMenu:
     # This gets called when the "new" button is pressed so it creates a prompt asking for the name of the new mod and
     # calls self.new_fallback when they press "done", None means that if they press "cancel" nothing specific is done
     def new(self, e):
-        create_prompt("New Mod", ("Mod Name",), self.new_fallback, None)
+        create_prompt("New Mod", ("Mod Name",
+                                  "Game Name (Check Spelling and Punctuation)",
+                                  "Name of Folder in Steam Files (If different from Game Name)",
+                                  "PolyTech (Poly Bridge Modding Framework)",
+                                  "Steam Directory"), self.new_fallback, None, defaults={
+            "Game Name (Check Spelling and Punctuation)": "Poly Bridge 2",
+            "PolyTech (Poly Bridge Modding Framework)": "Auto",
+            "Steam Directory": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\"
+        })
 
     # See the load function, this is the function that gets called when the prompt from the load function has "done"
     # clicked
@@ -148,8 +165,10 @@ class InterfaceMenu:
         # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
         pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod)
 
-    # This gets called when the "load" button is pressed so it creates a prompt asking for the name of the mod and
+    # This gets called when the "open" button is pressed so it creates a prompt asking for the name of the mod and
     # calls self.load_fallback when they press "done", None means that if they press "cancel" nothing specific is done
+    # there is also a warning that will show up in red telling them not to open mods from untrusted sources this is
+    # due to the fact that a malicious .umm file could allow for arbitrary code execution
     def load(self, e):
         create_prompt("Load Mod", ("Mod Name",), self.load_fallback, None,
                       warning="Never Open Mods From Untrusted Sources")

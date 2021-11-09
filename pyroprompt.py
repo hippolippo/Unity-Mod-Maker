@@ -24,7 +24,7 @@ def create_prompt(title, questions: tuple, fallback, cancel_fallback, defaults=N
     for question in enumerate(questions):
         Label(frame, text=question[1], font=("Arial", 12), background="#00062A", fg="#acc5dc").pack(fill="x")
         answers.append(Entry(frame, background="#4A3EAB", font=("Arial", 12)))
-        answers[-1].pack(fill="x")
+        answers[-1].pack(fill="x", padx=10)
         if defaults is not None and question[1] in defaults:
             answers[-1].insert(0, defaults[question[1]])
         Frame(frame, background="#00062A").pack(pady=10)

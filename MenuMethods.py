@@ -11,27 +11,63 @@ import ChangeManager
 from pygments.lexers.dotnet import CSharpLexer
 
 
+# This function is used to make the loading screens for Building the mod and for generating the Dotnet files
 def create_loading_screen(message="Please Wait..."):
+    # Visuals
     root = Tk()
     root.title("Please Wait...")
     root.iconbitmap("resources/unitymodmaker.ico")
     root.configure(background="#00062A")
+    # The text it shows it provided via the message parameter
     x = Label(root, text=message, font=("Arial", 20), background="#00062A", fg="#b4d9f9")
     x.pack(padx=20, pady=20)
+    # This isn't added to the pyro list of windows because it will be deleted before the next visual tick anyway
+    # (Visuals freeze during these build methods) - This could be "fixed" by running the build method in a
+    # different thread but it isn't necessary to allow them to edit the mod while it is installing
     root.update()
+    # it returns x so that you can update the loading text while it is doing one task
+    # it returns root so you can destroy it when you are done
     return root, x
 
 
-def _new_fallback(name):
-    name = name[0]
+# See the new function, this is the function that gets called when the prompt from the new function has "done"
+# clicked
+def _new_fallback(data):
+    # first item in the list is the name of the mod
+    name = data[0]
+    # check if there is a directory that corresponds to a mod with this name
+    # (spaces aren't included in the file names)
     if exists(os.getcwd() + "/projects/" + name.replace(" ", "")):
+        # When the fallback to a prompt returns something, the prompt will show that as an error message and
+        # keep itself open effectively asking them again
         return "Project Already Exists"
-    mod = ModObject.ModObject(name.replace(" ", ""))
+    # Decide whether the mod should use polytech
+    poly_tech = data[3]
+    if poly_tech.lower() == "true":
+        poly_tech = True
+    elif poly_tech.lower() == "false":
+        poly_tech = False
+    else:
+        poly_tech = data[1] == "Poly Bridge 2"
+    # creates a new mod with this name and information from the prompt
+    mod = ModObject(name, poly_tech=poly_tech, game=data[1], folder_name=None if data[2] == "" else data[2],
+                    steampath=data[4])
+    # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
     pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod)
 
 
+# This gets called when the "new" button is pressed so it creates a prompt asking for the name of the new mod and
+# calls self.new_fallback when they press "done", None means that if they press "cancel" nothing specific is done
 def new():
-    create_prompt("New Mod", ("Mod Name",), _new_fallback, None)
+    create_prompt("New Mod", ("Mod Name",
+                              "Game Name (Check Spelling and Punctuation)",
+                              "Name of Folder in Steam Files (If different from Game Name)",
+                              "PolyTech (Poly Bridge Modding Framework)",
+                              "Steam Directory"), _new_fallback, None, defaults={
+        "Game Name (Check Spelling and Punctuation)": "Poly Bridge 2",
+        "PolyTech (Poly Bridge Modding Framework)": "Auto",
+        "Steam Directory": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\"
+    })
 
 
 def _open_fallback(name):
@@ -46,20 +82,28 @@ def _open_fallback(name):
 
 
 def open():
-    create_prompt("Load Mod", ("Mod Name",), _open_fallback, None)
+    create_prompt("Load Mod", ("Mod Name",), _open_fallback, None, warning="Never Open Mods From Untrusted Sources")
 
 
+# This gets called when they press the save button on the menubar (and later when they do ctrl+s)
 def save(window, filename):
+    # directory this programming is running in
     current_directory = os.getcwd()
+    # this is the directory for the mod
     folder_path = os.path.join(current_directory, "projects/" + filename)
     try:
+        # try to make the project folder because it might not exist
         os.mkdir(os.path.join(current_directory, "projects"))
     except FileExistsError:
+        # it already exists so it is fine, you can continue
         pass
     try:
+        # try to make the mod directory (it's in the project folder which is why we needed to make sure that existed)
         os.mkdir(folder_path)
     except FileExistsError:
+        # it already exists so we are good
         pass
+    # calls the save method on the mod object now that we made sure all the correct folders existed
     ModObject.save(window.mod, location=folder_path + "/" + filename + ".umm")
 
 

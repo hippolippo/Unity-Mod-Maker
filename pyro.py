@@ -153,6 +153,7 @@ class CoreUI(object):
         self.initialize_menubar()
         self.updatetitlebar()
         self.root.update()
+        self.root.focus()
         self.scroll_data = self.text.yview()
         self.starting()
         global pyros

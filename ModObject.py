@@ -10,7 +10,10 @@ from tkinter import *
 
 VERSION = "dev 0.1.1"
 windows = []
+
+
 def get_windows(): return windows
+
 
 class ModObject:
 
@@ -168,7 +171,7 @@ class ModObject:
             root.iconbitmap("resources/unitymodmaker.ico")
             from tkinter import scrolledtext
             textbox = scrolledtext.ScrolledText(root)
-            textbox.configure(bg="#191F44", fg="#FFC014",)
+            textbox.configure(bg="#191F44", fg="#FFC014", )
             textbox.insert(1.0, build_result)
             textbox.pack(fill="both")
             root.update()
