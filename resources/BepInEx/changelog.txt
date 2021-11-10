@@ -1,0 +1,6 @@
+3 commits since v5.4.16
+
+Changelog (excluding merges):
+* (3c31535) [ghorsington] ConsoleWindow: Use normal GetProcAddress
+* (2442a0d) [ghorsington] Bump version
+* (b7117e8) [ghorsington] ConsoleWindow: always resolve user32 from system folder

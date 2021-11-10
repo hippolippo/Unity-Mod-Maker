@@ -49,6 +49,7 @@ def done(root, fallback, answers, error):
         x = fallback([i.get() for i in answers])
     if x is not None:
         error.configure(text=x)
+        root.focus()
     else:
         cancel(root, None)
 

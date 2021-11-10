@@ -121,6 +121,9 @@ class InterfaceMenu:
             poly_tech = False
         else:
             poly_tech = data[1] == "Poly Bridge 2"
+        # make sure the game is set up in a way to support modding
+        if not verify_game(data[1], data[1] if data[2] == "" else data[2], data[4]):
+            return ""
         # creates a new mod with this name and information from the prompt
         mod = ModObject(name, poly_tech=poly_tech, game=data[1], folder_name=None if data[2] == "" else data[2],
                         steampath=data[4])

@@ -50,6 +50,9 @@ def _new_fallback(data):
         poly_tech = False
     else:
         poly_tech = data[1] == "Poly Bridge 2"
+    # make sure the game is set up in a way to support modding
+    if not ModObject.verify_game(data[1], data[1] if data[2] == "" else data[2], data[4]):
+        return ""
     # creates a new mod with this name and information from the prompt
     mod = ModObject(name, poly_tech=poly_tech, game=data[1], folder_name=None if data[2] == "" else data[2],
                     steampath=data[4])
@@ -206,11 +209,15 @@ def _keybind_fallback(window, values):
         CodeLine(values[0] + "JustPressed = " + values[0] + ".Value.IsDown();"),
         CodeLine("if (" + values[0] + ".Value.IsDown()){"),
         CodeLine(values[0] + "Down = true;").indent(),
-        CodeLine("// Code For When Key is Pressed").indent(),
+        CodeLine("if(mEnabled.Value){").indent(),
+        CodeLine("// Code For When Key is Pressed").indent().indent(),
+        ModObject.end_block().indent(),
         ModObject.end_block(),
         CodeLine("if (" + values[0] + ".Value.IsUp()){"),
         CodeLine(values[0] + "Down = false;").indent(),
-        CodeLine("// Code For When Key is Released").indent(),
+        CodeLine("if(mEnabled.Value){").indent(),
+        CodeLine("// Code For When Key is Released").indent().indent(),
+        ModObject.end_block().indent(),
         ModObject.end_block()
     ]).indent().indent().indent())
     window.refresh(False)

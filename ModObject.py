@@ -101,14 +101,14 @@ class ModObject:
                 CodeLine(data_type),
                 CodeLine(name),
                 CodeLine("="),
-                CodeLine(default+";")
+                CodeLine(default + ";")
             ], delimiter=" ").indent().indent())
         else:
             self.general_declarations.insert_block_after(CodeBlock([
                 CodeLine("public"),
                 CodeLine("static"),
                 CodeLine(data_type),
-                CodeLine(name+";")
+                CodeLine(name + ";")
             ], delimiter=" ").indent().indent())
 
     def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None):
@@ -301,6 +301,41 @@ def copy(mod_object, name):
     mod2 = load(folder_path + "/" + name_no_space + ".umm")
     mod2.set_mod_name(name)
     save(mod2, location=folder_path + "/" + name_no_space + ".umm")
+
+
+def verify_game(name, folder_name, steam_path):
+    if not os.path.isdir(os.path.join(steam_path, folder_name)):
+        messagebox.showerror("Game Not Found",
+                             "Game Not Found. There is no directory \"" + os.path.join(steam_path, folder_name) + "\"")
+        return False
+    if not os.path.isdir(os.path.join(steam_path, folder_name, name + "_Data")):
+        messagebox.showerror("Game Not Valid",
+                             "The directory \"" + os.path.join(steam_path, folder_name, name + "_Data") +
+                             "\" Does not exist, this is probably due to the game not being a CSharp Unity Game which "
+                             "means it can't be modded with this tool")
+        return False
+    if not os.path.isdir(os.path.join(steam_path, folder_name, "BepInEx")):
+        question = messagebox.askquestion("Install BepInEx",
+                                          "BepInEx is not installed on this game, would you like to install it "
+                                          "automatically?",
+                                          icon="error")
+        if question == "yes":
+            shutil.copytree(os.path.join(os.getcwd(), "resources", "BepInEx"),
+                            os.path.join(steam_path, folder_name), dirs_exist_ok=True)
+            messagebox.showinfo("BepInEx Installed", "BepInEx has been installed, please run the game once and then "
+                                                     "exit in order to generate the proper files, then click \"OK\"")
+            while not os.path.isdir(os.path.join(steam_path, folder_name, "BepInEx", "Plugins")):
+                messagebox.showinfo("BepInEx Installed",
+                                    "BepInEx has been installed, please run the game once and then "
+                                    "exit in order to generate the proper files, then click \"OK\"")
+            return True
+        else:
+            return False
+    while not os.path.isdir(os.path.join(steam_path, folder_name, "BepInEx", "Plugins")):
+        messagebox.showinfo("BepInEx Installed",
+                            "BepInEx has been installed, please run the game once and then "
+                            "exit in order to generate the proper files, then click \"OK\"")
+    return True
 
 
 if __name__ == "__main__":
