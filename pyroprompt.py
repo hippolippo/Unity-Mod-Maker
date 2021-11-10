@@ -46,7 +46,10 @@ def cancel(root, fallback):
 def done(root, fallback, answers, error):
     x = None
     if fallback is not None:
-        x = fallback([i.get() for i in answers])
+        try:
+            x = fallback([i.get() for i in answers])
+        except TypeError:
+            x = fallback([i.get() for i in answers], root)
     if x is not None:
         error.configure(text=x)
         root.focus()

@@ -104,7 +104,7 @@ class InterfaceMenu:
 
     # See the new function, this is the function that gets called when the prompt from the new function has "done"
     # clicked
-    def new_fallback(self, data):
+    def new_fallback(self, data, window):
         # first item in the list is the name of the mod
         name = data[0]
         # check if there is a directory that corresponds to a mod with this name
@@ -122,7 +122,10 @@ class InterfaceMenu:
         else:
             poly_tech = data[1] == "Poly Bridge 2"
         # make sure the game is set up in a way to support modding
-        if not verify_game(data[1], data[1] if data[2] == "" else data[2], data[4]):
+        support = verify_game(data[1], data[1] if data[2] == "" else data[2], data[4], window)
+        if type(support) is str:
+            return support
+        if not support:
             return ""
         # creates a new mod with this name and information from the prompt
         mod = ModObject(name, poly_tech=poly_tech, game=data[1], folder_name=None if data[2] == "" else data[2],
