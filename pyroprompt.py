@@ -2,7 +2,6 @@
 import threading
 from tkinter import *
 from functools import partial
-#import GraphicalInterface
 
 
 def create_prompt(title, questions: tuple, fallback, cancel_fallback, defaults=None, warning=None):
@@ -21,8 +20,10 @@ def create_prompt(title, questions: tuple, fallback, cancel_fallback, defaults=N
         error = Label(frame, text=warning, background="#00062A", fg="red")
     error.pack()
     answers = list()
+    labels = list()
     for question in enumerate(questions):
-        Label(frame, text=question[1], font=("Arial", 12), background="#00062A", fg="#acc5dc").pack(fill="x")
+        labels.append(Label(frame, text=question[1], font=("Arial", 12), background="#00062A", fg="#acc5dc"))
+        labels[-1].pack(fill="x")
         answers.append(Entry(frame, background="#4A3EAB", font=("Arial", 12)))
         answers[-1].pack(fill="x", padx=10)
         if defaults is not None and question[1] in defaults:
@@ -32,7 +33,7 @@ def create_prompt(title, questions: tuple, fallback, cancel_fallback, defaults=N
     buttons.pack()
     Button(buttons, text="Cancel", bg="#4A3EAB", command=partial(cancel, root, cancel_fallback)).grid(row=0, column=0, padx=10, pady=(10,10))
     Button(buttons, text="Done", bg="#4A3EAB", command=partial(done, root, fallback, answers, error)).grid(row=0, column=1, padx=10, pady=(10,10))
-    #GraphicalInterface.pyro.add_window(root)
+    return labels
 
 
 def cancel(root, fallback):

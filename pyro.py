@@ -200,6 +200,8 @@ class CoreUI(object):
                                     command=partial(MenuMethods.create_harmony_patch, self))
         self.createmenu.add_command(label="Create Config Item",
                                     command=partial(MenuMethods.create_config_item, self))
+        self.createmenu.add_command(label="Create Keybind",
+                                    command=partial(MenuMethods.create_keybind, self))
 
         self.menubar.add_cascade(label="Build", menu=self.buildmenu)
 
@@ -618,6 +620,7 @@ def mainloop():
     global pyros
     global windows
     while True:
+        count = 0
         for pyro in pyros:
             try:
                 pyro.root.update()
@@ -626,15 +629,20 @@ def mainloop():
                 modtext = pyro.mod.get_text()
                 if box != modtext:
                     pyro.refresh()
+                count += 1
             except Exception:
                 pass
         for window in windows:
             try:
                 window.update()
+                count += 1
             except Exception:
                 pass
         for window in get_windows():
             try:
                 window.update()
+                count += 1
             except Exception:
                 pass
+        if count == 0:
+            exit(0)

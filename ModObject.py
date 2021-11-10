@@ -8,7 +8,7 @@ import os
 import subprocess
 from tkinter import *
 
-VERSION = "dev 0.1.1"
+VERSION = "dev 0.1.2"
 windows = []
 
 
@@ -93,6 +93,24 @@ class ModObject:
             ))
         self.config_number -= 1
 
+    def declare_variable(self, data_type, name, default=None):
+        if default is not None:
+            self.general_declarations.insert_block_after(CodeBlock([
+                CodeLine("public"),
+                CodeLine("static"),
+                CodeLine(data_type),
+                CodeLine(name),
+                CodeLine("="),
+                CodeLine(default+";")
+            ], delimiter=" ").indent().indent())
+        else:
+            self.general_declarations.insert_block_after(CodeBlock([
+                CodeLine("public"),
+                CodeLine("static"),
+                CodeLine(data_type),
+                CodeLine(name+";")
+            ], delimiter=" ").indent().indent())
+
     def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None):
         poly_tech = self.poly_tech
         if result is not None:
@@ -111,7 +129,7 @@ class ModObject:
         patch.insert_block_after(CodeBlockWrapper(
             prefix=CodeLine(
                 "private " + ("static " if not have_instance else "") + ("bool" if prefix else "void") + " " +
-                                                                 in_class.replace("_", "") + method +
+                in_class.replace("_", "") + method +
                 ("Prefix" if prefix else "Postfix") +
                 "Patch(" +
                 ", ".join(parameters) + "){"

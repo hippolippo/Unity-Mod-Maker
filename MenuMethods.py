@@ -9,6 +9,7 @@ import ModObject
 from tkinter import *
 import ChangeManager
 from pygments.lexers.dotnet import CSharpLexer
+from CodeManager import *
 
 
 # This function is used to make the loading screens for Building the mod and for generating the Dotnet files
@@ -191,3 +192,44 @@ def create_config_item(window):
     create_prompt("Create Config Item", ("Variable Name", "Data Type (e.g. int)", "Default Value (C# formatting)",
                                          "Definition (Name in List)", "Description (Info When Hovered Over)"),
                   partial(_config_item_fallback, window), None)
+
+
+def _keybind_fallback(window, values):
+    scroll_data = window.text.yview()
+    ChangeManager.log_action(window.mod, True)
+    window.mod.add_config(values[0], "BepInEx.Configuration.KeyboardShortcut",
+                          "new BepInEx.Configuration.KeyboardShortcut(UnityEngine.KeyCode." + values[1] + ")",
+                          values[2], values[3])
+    window.mod.declare_variable("bool", values[0] + "JustPressed", "false")
+    window.mod.declare_variable("bool", values[0] + "Down", "false")
+    window.mod.update.contents.insert_block_after(CodeBlock([
+        CodeLine(values[0] + "JustPressed = " + values[0] + ".Value.IsDown();"),
+        CodeLine("if (" + values[0] + ".Value.IsDown()){"),
+        CodeLine(values[0] + "Down = true;").indent(),
+        CodeLine("// Code For When Key is Pressed").indent(),
+        ModObject.end_block(),
+        CodeLine("if (" + values[0] + ".Value.IsUp()){"),
+        CodeLine(values[0] + "Down = false;").indent(),
+        CodeLine("// Code For When Key is Released").indent(),
+        ModObject.end_block()
+    ]).indent().indent().indent())
+    window.refresh(False)
+    window.text.yview_moveto(scroll_data[0])
+
+
+def keycode_link(e):
+    try:
+        import webbrowser
+        webbrowser.open_new("https://docs.unity3d.com/ScriptReference/KeyCode.html")
+    except ImportError:
+        messagebox.create_error("Missing Module",
+                                "Missing the \"webbrowser\" module")
+
+
+def create_keybind(window):
+    labels = create_prompt("Create Keybind", ("Variable Name", "Default Keycode (Click For List)",
+                                              "Definition (Name in Settings)", "Description (Info When Hovered Over)"),
+                           partial(_keybind_fallback, window), None,
+                           defaults={"Default Keycode (Click For List)": "None"})
+    labels[1].bind("<Button-1>", keycode_link)
+    labels[1].config(fg="#347deb")
