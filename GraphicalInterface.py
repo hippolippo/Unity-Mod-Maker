@@ -4,10 +4,12 @@ It contains the code for the main menu which is what you are greeted with when y
 """
 
 import os
+from tkinter import messagebox, filedialog
 from tkinter import *
 from tkinter import ttk
 from PIL import ImageTk, Image
-from tkinter import messagebox
+from functools import partial
+import json
 
 from pygments.lexers.dotnet import CSharpLexer
 import pyroprompt
@@ -23,6 +25,14 @@ window_count = 0
 # keep track of whether it should even open the main menu depending on if there is one already open (avoid more than one
 # menu open at a time
 can_make_menu = True
+
+DEFAULT_SETTINGS = {
+    "Default Game": "Poly Bridge 2",
+    "Default Game Folder": "",
+    "Default Steam Directory": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\",
+
+
+}
 
 
 # These two functions are used to keep track of how many pyro windows are open becuase the main interface should open
@@ -58,34 +68,97 @@ class InterfaceMenu:
             return
         # it sets can_make_menu to false because now there is a menu and a new one shouldn't be made
         can_make_menu = False
+        self.settings = self.find_settings()
         # Setting up the main window visuals
         self.root = Tk()
         self.root.configure(background="#00062A")
-        self.root.geometry("460x280")
+        self.root.geometry("460x220")
         self.root.resizable(0, 0)
         self.root.title("Unity Mod Maker - Main Menu")
         self.root.iconbitmap("resources/unitymodmaker.ico")
-        self.frame = Frame(width=220)
-        self.input = Entry(self.frame, background="#4A3EAB", font=("Arial", 18))
-        self.input.pack(fill="x")
-        self.frame.place(x=20, y=18, width=420)
         self.new_image = PhotoImage(file="resources/newbutton.png")
         self.open_image = PhotoImage(file="resources/openbutton.png")
         self.new_button = Label(self.root, image=self.new_image, background="#00062A")
         self.open_button = Label(self.root, image=self.open_image, background="#00062A")
-        self.new_button.place(x=20, y=280 - 220)
-        self.open_button.place(x=240, y=280 - 220)
+        self.new_button.place(x=20, y=20)
+        self.open_button.place(x=240, y=20)
         # The buttons are bound to the self.new function and self.load function because they are new and load buttons
         self.new_button.bind("<Button-1>", self.new)
         self.open_button.bind("<Button-1>", self.load)
 
-        # If they press enter when their cursor is in the text box it calls the self.enter function to either make the
-        # mod or open the mod if it exists
-        self.input.bind('<Return>', self.enter)
+        def mouse_enter(e):
+            e.widget.config(fg="#8a7cf9")
+
+        def mouse_exit(e):
+            e.widget.config(fg="#4a3eab")
+
+        extra_buttons = []
+
+        self.open_external = Label(self.root, text="Open From .umm File")
+        self.open_external.place(x=20, y=150)
+        self.open_external.bind("<Button-1>", self.open_dialog)
+        extra_buttons.append(self.open_external)
+
+        self.settings_button = Label(self.root, text="Unity Mod Maker Settings")
+        self.settings_button.place(x=20, y=180)
+        self.settings_button.bind("<Button-1>", self.change_settings)
+        extra_buttons.append(self.settings_button)
+
+        for button in extra_buttons:
+            button.config(font=("Arial", 15), fg="#4a3eab", background="#00062A")
+            button.bind("<Enter>", mouse_enter)
+            button.bind("<Leave>", mouse_exit)
 
         # Instead of doing root.mainloop we do pyro.add_window to avoid thread conflicts, pyro deals with calling
         # root.update() on  everything in the pyro window list, there is also no need to remove closed windows from this
         pyro.add_window(self.root)
+
+    def find_settings(self):
+        settings = None
+        try:
+            with open('settings.json') as json_file:
+                settings = json.load(json_file)
+                for item in DEFAULT_SETTINGS:
+                    if item not in settings:
+                        settings[item] = DEFAULT_SETTINGS[item]
+            with open('settings.json', 'w') as json_file:
+                json.dump(settings, json_file)
+        except Exception:
+            with open('settings.json', 'w') as json_file:
+                json.dump(DEFAULT_SETTINGS, json_file)
+                settings = DEFAULT_SETTINGS
+        return settings
+
+
+    def save_settings(self, settings, values):
+        for i in range(len(settings)):
+            self.settings[settings[i]] = values[i]
+        with open('settings.json', 'w') as json_file:
+            json.dump(self.settings, json_file)
+
+
+    def change_settings(self, e):
+        ordered_settings = [item for item in self.settings]
+        create_prompt("Unity Mod Maker Settings", ordered_settings, partial(self.save_settings, ordered_settings), None,
+                      defaults=self.settings, width=500)
+
+
+    def _copy_fallback(self, mod, name):
+        name = name[0]
+        self.new_name = name
+        mod = copy(mod, name)
+        if mod is not None: return mod
+        return self.load_fallback([self.new_name])
+
+    def open_dialog(self, e):
+        messagebox.showwarning("Never Open Mods From Untrusted Sources", "Reminder: Never Open Mods From Untrusted Sources!!")
+        file = filedialog.askopenfile()
+        if file is None: return
+        name = file.name
+        file.close()
+        mod = load(name)
+        create_prompt("Create Mod From .umm file", ("New Mod Name",), partial(self._copy_fallback, mod), None)
+        #pyro.CoreUI(lexer=CSharpLexer(), filename=mod.mod_name_no_space.get_text(), mod=mod)
 
     def enter(self, e):
         # mod_name is the contents of the text box
@@ -143,9 +216,10 @@ class InterfaceMenu:
                                   "Name of Folder in Steam Files (If different from Game Name)",
                                   "PolyTech (Poly Bridge Modding Framework)",
                                   "Steam Directory"), self.new_fallback, None, defaults={
-            "Game Name (Check Spelling and Punctuation)": "Poly Bridge 2",
+            "Game Name (Check Spelling and Punctuation)": self.settings["Default Game"],
+            "Name of Folder in Steam Files (If different from Game Name)": self.settings["Default Game Folder"],
             "PolyTech (Poly Bridge Modding Framework)": "Auto",
-            "Steam Directory": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\"
+            "Steam Directory": self.settings["Default Steam Directory"]
         })
 
     # See the load function, this is the function that gets called when the prompt from the load function has "done"
@@ -154,7 +228,8 @@ class InterfaceMenu:
         # name is a list of values but it is only one long so just replace it with the first item
         name = name[0]
         # If the directory corresponding to the name doesn't exist, they can't open it
-        if not exists(os.getcwd() + "/projects/" + name.replace(" ", "")):
+        check_path = os.getcwd() + "/projects/" + name.replace(" ", "")
+        if not exists(check_path):
             # When the fallback to a prompt returns something, the prompt will show that as an error message and
             # keep itself open effectively asking them again
             return "Project Doesn't Exist"

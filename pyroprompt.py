@@ -4,14 +4,14 @@ from tkinter import *
 from functools import partial
 
 
-def create_prompt(title, questions: tuple, fallback, cancel_fallback, defaults=None, warning=None):
+def create_prompt(title, questions, fallback, cancel_fallback, defaults=None, warning=None, width=None):
     root = Tk()
     root.configure(background="#00062A")
     root.title(title)
     root.iconbitmap("resources/unitymodmaker.ico")
-    Frame(root, width=400, background="#00062A").pack()
-    frame = Frame(root, width=400, background="#00062A")
-    frame.pack()
+    Frame(root, width=400 if width is None else width, background="#00062A").pack()
+    frame = Frame(root, width=400 if width is None else width, background="#00062A")
+    frame.pack(fill="x")
     heading = Label(frame, text=title, font=("Arial", 18), background="#00062A", fg="#b4d9f9")
     heading.pack(fill="x")
     if warning is None:

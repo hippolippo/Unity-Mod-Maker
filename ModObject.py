@@ -292,11 +292,11 @@ def load(location="mod.umm"):
 def copy(mod_object, name):
     name_no_space = name.replace(" ", "")
     current_directory = os.getcwd()
-    folder_path = os.path.join(current_directory, "projects/" + name_no_space)
+    folder_path = os.path.join(current_directory, "projects", name_no_space)
     try:
         os.mkdir(folder_path)
     except FileExistsError:
-        pass
+        return "That Project Already Exists"
     save(mod_object, location=folder_path + "/" + name_no_space + ".umm")
     mod2 = load(folder_path + "/" + name_no_space + ".umm")
     mod2.set_mod_name(name)

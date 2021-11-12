@@ -116,7 +116,7 @@ def save(window, filename):
 
 def _copy_fallback(window, name):
     name = name[0]
-    ModObject.copy(window.mod, name)
+    return ModObject.copy(window.mod, name)
 
 
 def copy(window):
