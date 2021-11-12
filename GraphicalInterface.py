@@ -152,7 +152,7 @@ class InterfaceMenu:
 
     def open_dialog(self, e):
         messagebox.showwarning("Never Open Mods From Untrusted Sources", "Reminder: Never Open Mods From Untrusted Sources!!")
-        file = filedialog.askopenfile()
+        file = filedialog.askopenfile(filetypes=[("Unity Mod Maker Files", "*.umm")])
         if file is None: return
         name = file.name
         file.close()
