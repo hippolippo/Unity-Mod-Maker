@@ -1,1 +1,1 @@
-python GraphicalInterface.py
+python main.py

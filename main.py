@@ -1,6 +1,12 @@
-import GraphicalInterface
+
 import pyro
 
-if __name__ == "__main__":
+
+def interface():
+    import GraphicalInterface
     GraphicalInterface.InterfaceMenu()
+
+
+if __name__ == "__main__":
+    interface()
     pyro.mainloop()

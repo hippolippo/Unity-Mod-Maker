@@ -8,14 +8,18 @@ import os
 import subprocess
 from tkinter import *
 
-VERSION = "dev 0.1.2"
+VERSION = "dev 0.2.0"
 windows = []
 
 
 def get_windows(): return windows
 
 
-class ModObject:
+class LimitedModObject:
+    def __init__(self):
+        pass
+
+class ModObject(LimitedModObject):
 
     def __init__(self, mod_name="mod", version="1.0.0", poly_tech=True, game="Poly Bridge 2", folder_name=None,
                  steampath="C:\\Program Files (x86)\\Steam\\steamapps\\common\\"):

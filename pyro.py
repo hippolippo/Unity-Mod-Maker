@@ -496,10 +496,11 @@ class CoreUI(object):
         # self.recolorize()
 
     def close(self, event=None):
-        set_window_count(get_window_count() - 1)
+        import GraphicalInterface
+        GraphicalInterface.set_window_count(GraphicalInterface.get_window_count() - 1)
         self.root.destroy()
         if get_window_count() <= 0:
-            set_window_count(0)
+            GraphicalInterface.set_window_count(0)
             InterfaceMenu()
 
     # ---------------------------------------------------------------------------------------
