@@ -69,6 +69,7 @@
         Pyro requires Tkinter and Pygment external libraries.
 
 """
+RECENT = None
 
 import os
 import io
@@ -146,6 +147,8 @@ class CoreUI(object):
     """
 
     def __init__(self, lexer, filename="Untitled", mod=None, settings={}):
+        global RECENT
+        RECENT = self
         self.settings = settings
         set_window_count(get_window_count() + 1)
         self.filename = filename
@@ -179,8 +182,6 @@ class CoreUI(object):
         self.root.geometry("1200x700+10+10")
         self.initialize_menubar()
         self.updatetitlebar()
-        self.root.update()
-        self.root.lift()
         self.scroll_data = self.text.yview()
         self.starting()
         global pyros
@@ -686,3 +687,8 @@ def mainloop():
         if count == 0:
             print("Exiting: All Windows Deleted")
             exit(0)
+        global RECENT
+        if RECENT is not None:
+            RECENT.root.lift()
+            RECENT.text.focus()
+            RECENT = None
