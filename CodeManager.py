@@ -1,5 +1,6 @@
 import functools
 import operator
+import traceback
 
 
 class CodeLine:
@@ -8,6 +9,7 @@ class CodeLine:
         self.should_indent = should_indent
         self.code = code
         self.locked = locked
+        self.dead = False
 
     def indent(self):
         if self.should_indent:
@@ -18,10 +20,14 @@ class CodeLine:
         return "\"" + self.code + "\""
 
     def get_text(self):
+        '''if self.dead:
+            print(self.code)'''
+        if self.dead: return ""
         return self.code
 
     def update_contents(self, code):
         if not self.locked:
+            #self.dead = False
             self.code = code
             return "Success"
         else:
@@ -46,7 +52,9 @@ class CodeLine:
         return [(self.code, self.is_locked(), self)]
 
     def get_code_lines(self):
+        if self.dead: return "dead"
         lines = [self]
+        lines = [i for i in lines if not i.dead]
         return lines
 
     def get_list(self):
@@ -55,15 +63,23 @@ class CodeLine:
     def default_indent(self):
         pass
 
+    def kill(self):
+        #self.code = ""
+        self.dead = True
+
 
 class Delimiter(CodeLine):
     def __init__(self, code, should_indent=True):
         self.should_indent = should_indent
         self.code = code
         self.locked = True
+        self.dead = False
 
     def update_contents(self, code):
+        if self.dead: return "Dead"
         return "Delimiter"
+
+    def __copy__(self): return Delimiter(self.code, self.should_indent)
 
 
 class CodeBlock:
@@ -105,7 +121,7 @@ class CodeBlock:
             self.lines.pop(location)
 
     def get_text(self):
-        return "".join([line.get_text() for line in self.get_code_lines()])
+        return "".join([line.get_text() for line in self.get_code_lines() if not line.dead])
 
     def get_prefix(self):
         return self
@@ -126,9 +142,10 @@ class CodeBlock:
         return self.lines
 
     def get_code_lines(self):
-        lines = sum([[line, self.delimiter] for line in self.lines], [])[:-1]
+        lines = sum([[line, self.delimiter] for line in self.lines if not line.dead], [])[:-1]
         if len(lines) == 0:
-            lines = [self.default]
+            return "dead"
+        #lines = [i for i in lines if not i.dead]
         return lines
 
     def default_indent(self):
@@ -174,14 +191,33 @@ class CodeBlockWrapper:
         return prefix + contents + postfix
 
     def get_text(self):
-        return "".join([line.get_text() for line in self.get_code_lines()])
+        return "".join([line.get_text() for line in self.get_code_lines() if not line.dead])
 
     def get_code_lines(self):
-        lines = sum([self.prefix.get_code_lines(),
+        to_sum = []
+        if self.prefix.get_code_lines() != "dead":
+            to_sum.append(self.prefix.get_code_lines())
+        if self.contents.get_code_lines() != "dead":
+            if len(to_sum) > 0:
+                to_sum.append(self.delimiter.get_code_lines())
+            to_sum.append(self.contents.get_code_lines())
+        if self.postfix.get_code_lines() != "dead":
+            if len(to_sum) > 0:
+                to_sum.append(self.delimiter.get_code_lines())
+            to_sum.append(self.postfix.get_code_lines())
+
+        """lines = sum([self.prefix.get_code_lines(),
                      self.delimiter.get_code_lines(),
                      self.contents.get_code_lines(),
                      self.delimiter.get_code_lines(),
-                     self.postfix.get_code_lines()], [])
+                     self.postfix.get_code_lines()], [])"""
+        try:
+            lines = sum(to_sum, [])
+        except Exception as e:
+            print(to_sum)
+            raise e
+            exit(-1)
+        #lines = [i for i in lines if not i.dead]
         return lines
 
     def get_block_list(self):
@@ -204,10 +240,13 @@ class CodeBlockWrapper:
 
 class LargeCodeBlockWrapper:
 
-    def __init__(self, block_list=[], delimiter="\n", should_indent=True):
+    def __init__(self, block_list=None, delimiter="\n", should_indent=True):
         self.should_indent = should_indent
         self.delimiter = Delimiter(delimiter)
-        self.block_list = block_list.copy()
+        if block_list is None:
+            self.block_list = [CodeBlock([CodeLine("")])]
+        else:
+            self.block_list = block_list.copy()
         self.default = CodeLine("")
 
     def insert_block_after(self, block, after_block=None, position=None):
@@ -254,13 +293,14 @@ class LargeCodeBlockWrapper:
         return output
 
     def get_text(self):
-        return "".join([line.get_text() for line in self.get_code_lines()])
+        return "".join([line.get_text() for line in self.get_code_lines() if not line.dead])
 
     def get_code_lines(self):
         lines = sum([block.get_code_lines() + [self.delimiter] for block
-                    in self.block_list], [])[:-1]
+                    in self.block_list if block.get_code_lines() != "dead"], [])[:-1]
         if len(lines) == 0:
-            lines = [self.default]
+            return "dead"
+        lines = [i for i in lines if not i.dead]
         return lines
 
     def get_block_list(self):

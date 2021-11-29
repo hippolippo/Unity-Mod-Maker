@@ -46,8 +46,11 @@ def update(mod, code, clear_redo=True):
         back -= 1
     back += 1
     added = code[front:back]
-    delete(mod.get_code_lines(), front, len(mod_code) + back - front)
-    add(mod, front, added)
+    deleteResults = delete(mod.get_code_lines(), front, len(mod_code) + back - front)
+    addResults = add(mod, front, added)
+    if "Locked" in deleteResults or "Locked" in addResults:
+        return "Locked"
+    #print(front, len(added), front+len(added))
     return front + len(added)
 
 
@@ -80,9 +83,9 @@ def delete_char(code_lines, index):
         # There should never be a delimiter on the edge so this shouldn't have an exception
         if code_lines[i - 1].is_locked() or code_lines[i + 1].is_locked():
             return "Locked"
-        code_lines.pop(i)
-        # delimiter is deleted so index i is actually the CodeLine on the right now
-        return code_lines[i - 1].update_contents(code_lines[i - 1].get_text() + code_lines[i].get_text())
+        result = code_lines[i - 1].update_contents(code_lines[i - 1].get_text() + code_lines[i + 1].get_text())
+        code_lines[i+1].kill()
+        return result
     return "Error"
 
 

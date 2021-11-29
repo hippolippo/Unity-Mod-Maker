@@ -159,7 +159,7 @@ class CoreUI(object):
         global pyros
         pyros.append(self)
 
-    def undo(self, e):
+    def undo(self, e=None):
         mod = ChangeManager.undo()
         if mod is not None:
             self.mod = mod
@@ -214,22 +214,34 @@ class CoreUI(object):
     def refresh(self, updateMod=True):
         if updateMod:
             self.scroll_data = self.text.yview()
+            text = self.text.get("1.0", tkinter.END)[:-1]
+            cursor = self.text.index(tkinter.INSERT)
+            #print(cursor)
             index = ChangeManager.update(self.mod, self.text.get("1.0", tkinter.END)[:-1])
+            if index == "Locked":
+                self.undo()
+                return
             self.mod.index = index
         else:
+            text = None
             index = self.mod.index
         self.text.delete("1.0", tkinter.END)
         self.text.insert("1.0", self.mod.get_text())
-        text = self.text.get("1.0", tkinter.END).split("\n")
-        a, i = 0, 0
-        while a + len(text[i]) + 1 < index and i < len(text):
-            a += len(text[i])
-            a += 1
-            i += 1
-        j = index - a
-        self.text.mark_set("insert", "%d.%d" % (i + 1, j))
+        if self.mod.get_text() == text and text is not None:
+            self.text.mark_set("insert", str(cursor))
+        else:
+            text = self.text.get("1.0", tkinter.END).split("\n")
+            a, i = 0, 0
+            while a + len(text[i]) + 1 < index and i < len(text):
+                a += len(text[i])
+                a += 1
+                i += 1
+            j = index - a
+            self.text.mark_set("insert", "%d.%d" % (i + 1, j))
+
         self.recolorize()
         self.text.yview_moveto(self.scroll_data[0])
+
 
     def uiconfig(self):
         """
@@ -631,19 +643,21 @@ def mainloop():
                 if box != modtext:
                     pyro.refresh()
                 count += 1
-            except Exception:
+            except _tkinter.TclError as e:
+                #print(e)
                 pass
         for window in windows:
             try:
                 window.update()
                 count += 1
-            except Exception:
+            except _tkinter.TclError:
                 pass
         for window in get_windows():
             try:
                 window.update()
                 count += 1
-            except Exception:
+            except _tkinter.TclError:
                 pass
         if count == 0:
+            print("Exiting: All Windows Deleted")
             exit(0)
