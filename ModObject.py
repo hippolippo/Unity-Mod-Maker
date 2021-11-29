@@ -8,7 +8,7 @@ import os
 import subprocess
 from tkinter import *
 
-VERSION = "dev 0.2.0"
+VERSION = "dev 0.3.0"
 windows = []
 
 
