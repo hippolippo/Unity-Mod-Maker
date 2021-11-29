@@ -1,4 +1,5 @@
 # Unity-Mod-Maker
+Note: This is the windows fork of the project, a Linux fork does not exist yet
 Installation Instructions:
 <ul>
     <li>Make sure Python 3.9 is installed (Works best if installed via Microsoft Store)</li>
