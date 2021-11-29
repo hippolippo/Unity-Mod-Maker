@@ -30,10 +30,13 @@ DEFAULT_SETTINGS = {
     "Default Game": "Poly Bridge 2",
     "Default Game Folder": "",
     "Default Steam Directory": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\",
-
+    "Show Line Numbers": "False"
 
 }
 
+SETTINGS_TO_SHOW = [
+    "Default Game", "Default Game Folder", "Default Steam Directory"
+]
 
 # These two functions are used to keep track of how many pyro windows are open becuase the main interface should open
 # when the last window is closed but not when just any window is closed
@@ -138,7 +141,7 @@ class InterfaceMenu:
 
 
     def change_settings(self, e):
-        ordered_settings = [item for item in self.settings]
+        ordered_settings = SETTINGS_TO_SHOW
         create_prompt("Unity Mod Maker Settings", ordered_settings, partial(self.save_settings, ordered_settings), None,
                       defaults=self.settings, width=500)
 
@@ -173,7 +176,7 @@ class InterfaceMenu:
         # this closes the main menu because we do not need it anymore
         close(self)
         # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
-        pyro.CoreUI(lexer=CSharpLexer(), filename=no_space, mod=mod)
+        pyro.CoreUI(lexer=CSharpLexer(), filename=no_space, mod=mod, settings=self.settings)
 
     # See the new function, this is the function that gets called when the prompt from the new function has "done"
     # clicked
@@ -206,7 +209,7 @@ class InterfaceMenu:
         # close the menu window because we don't need it anymore
         close(self)
         # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
-        pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod)
+        pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod, settings=self.settings)
 
     # This gets called when the "new" button is pressed so it creates a prompt asking for the name of the new mod and
     # calls self.new_fallback when they press "done", None means that if they press "cancel" nothing specific is done
@@ -244,7 +247,7 @@ class InterfaceMenu:
         # close the main menu because we do not need it anymore
         close(self)
         # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
-        pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod)
+        pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod, settings=self.settings)
 
     # This gets called when the "open" button is pressed so it creates a prompt asking for the name of the mod and
     # calls self.load_fallback when they press "done", None means that if they press "cancel" nothing specific is done

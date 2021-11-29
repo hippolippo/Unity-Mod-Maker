@@ -111,6 +111,32 @@ from pygments.styles import get_style_by_name
 pyros = []
 windows = []
 
+class LineNumbers(Text): #scrolledtext.ScrolledText
+    def __init__(self, master, text_widget, **kwargs):
+        super().__init__(master, **kwargs)
+        self.text_widget = text_widget
+        self.text_widget.bind('<KeyRelease>', self.match_up)
+        self.num_of_lines = -1
+        self.insert(1.0, '1')
+        self.configure(state='disabled')
+
+    def match_up(self, e=None):
+        p, q = self.text_widget.index("@0,0").split('.')
+        p = int(p)
+        final_index = str(self.text_widget.index(tkinter.END))
+        temp = self.num_of_lines
+        self.num_of_lines = final_index.split('.')[0]
+        line_numbers_string = "\n".join(str(1 + no) for no in range(int(self.num_of_lines)))
+        width = len(str(self.num_of_lines)) + 3
+
+        self.configure(state='normal', width=width)
+        if self.num_of_lines != temp:
+            self.delete(1.0, tkinter.END)
+            self.insert(1.0, line_numbers_string)
+        self.configure(state='disabled')
+        self.scroll_data = self.text_widget.yview()
+        self.yview_moveto(self.scroll_data[0])
+
 
 class CoreUI(object):
     """
@@ -119,7 +145,8 @@ class CoreUI(object):
         the lexer to be used for text decoration.
     """
 
-    def __init__(self, lexer, filename="Untitled", mod=None):
+    def __init__(self, lexer, filename="Untitled", mod=None, settings={}):
+        self.settings = settings
         set_window_count(get_window_count() + 1)
         self.filename = filename
         if mod is None:
@@ -153,7 +180,7 @@ class CoreUI(object):
         self.initialize_menubar()
         self.updatetitlebar()
         self.root.update()
-        self.root.focus()
+        self.root.lift()
         self.scroll_data = self.text.yview()
         self.starting()
         global pyros
@@ -183,8 +210,8 @@ class CoreUI(object):
 
         self.menubar.add_cascade(label="File", menu=self.filemenu)
 
-        self.filemenu.add_command(label="New", command=MenuMethods.new)
-        self.filemenu.add_command(label="Open", command=MenuMethods.open)
+        self.filemenu.add_command(label="New", command=partial(MenuMethods.new,self.settings))
+        self.filemenu.add_command(label="Open", command=partial(MenuMethods.open, self.settings))
         self.filemenu.add_command(label="Save", command=partial(MenuMethods.save, self, self.filename))
         self.filemenu.add_command(label="Save as Renamed Copy", command=partial(MenuMethods.copy, self))
 
@@ -259,7 +286,7 @@ class CoreUI(object):
                        "exportselection": True,
                        "undo": True,
                        "selectbackground": "#E0000E",
-                       "inactiveselectbackground": "#E0E0E0"
+                       "inactiveselectbackground": "#E0E0E0",
                        }
         self.text = scrolledtext.ScrolledText(master=self.root, **self.uiopts)
         self.text.vbar.configure(
@@ -271,7 +298,7 @@ class CoreUI(object):
             highlightbackground="#00062A",
             troughcolor="#20264A",
             relief="flat")
-        self.cli = tkinter.Text(self.root, {"height": "1",
+        '''self.cli = tkinter.Text(self.root, {"height": "1",
                                             "bg": "#191F44",
                                             "fg": "#FFC014",
                                             "insertbackground": "#FFD310",
@@ -281,13 +308,38 @@ class CoreUI(object):
                                             "undo": True,
                                             "selectbackground": "#E0000E",
                                             "inactiveselectbackground": "#E0E0E0"
+                                            })'''
+        self.info = tkinter.Label(self.root, {"height": "1",
+                                            "bg": "#191F44",
+                                            "fg": "#FFC014",
+                                            "anchor": "w"
                                             })
-        self.text.grid(column=0, row=0, sticky=('nsew'))
-        self.cli.grid(column=0, row=1, pady=1, sticky=('nsew'))
-        self.cli.bind("<Return>", self.cmdlaunch)
-        self.cli.bind("<KeyRelease>", self.adjust_cli)
-        self.cli.visible = True
-        self.root.grid_columnconfigure(0, weight=1)
+        lineNums_uiopts = {"height": "60",
+                       "width": "8",
+                       "cursor": "xterm",
+                       "bg": "#2c314d",
+                       "fg": "#FFAC00",
+                       "insertbackground": "#FFD310",
+                       "insertborderwidth": "1",
+                       "insertwidth": "3",
+                       "exportselection": True,
+                       "undo": True,
+                       "selectbackground": "#E0000E",
+                       "inactiveselectbackground": "#E0E0E0"
+                       }
+        if self.settings["Show Line Numbers"].lower() == "true":
+            self.lineNums = LineNumbers(self.root, self.text, **lineNums_uiopts)
+            self.lineNums.grid(column=0,row=0,sticky=('nsew'))
+        self.text.grid(column=1, row=0, sticky=('nsew'))
+        self.root.grid_columnconfigure(0, weight=0)
+        self.root.grid_columnconfigure(1, weight=1)
+        self.info.grid(column=0, row=1, pady=1, sticky=('nsew'),columnspan=2)
+        self.info.visible = True
+        #self.cli.grid(column=0, row=1, pady=1, sticky=('nsew'))
+        #self.cli.bind("<Return>", self.cmdlaunch)
+        #self.cli.bind("<KeyRelease>", self.adjust_cli)
+        #self.cli.visible = True
+        #self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_rowconfigure(1, weight=0)
 
@@ -585,43 +637,10 @@ class CoreUI(object):
             start_line = end_line
             start_index = end_index
 
+    def update_info(self):
+        cursor = self.text.index(tkinter.INSERT)
+        self.info['text'] = "Cursor Position: row {}, column {}".format(cursor.split(".")[0],cursor.split(".")[1])
 
-if __name__ == "__main__":
-    extens = "cs"
-
-    try:
-        extens = sys.argv[1].split('.')[1]
-    except IndexError:
-        pass
-    extens = "cs"
-    if extens == "py" or extens == "pyw" or extens == "sc" or extens == "sage" or extens == "tac":
-        ui_core = CoreUI(lexer=PythonLexer())
-    elif extens == "txt" or extens == "README" or extens == "text":
-        ui_core = CoreUI(lexer=TextLexer())
-    elif extens == "htm" or extens == "html" or extens == "css" or extens == "js" or extens == "md":
-        ui_core = CoreUI(lexer=HtmlLexer())
-    elif extens == "xml" or extens == "xsl" or extens == "rss" or extens == "xslt" or extens == "xsd" or extens == "wsdl" or extens == "wsf":
-        ui_core = CoreUI(lexer=XmlLexer())
-    elif extens == "php" or extens == "php5":
-        ui_core = CoreUI(lexer=HtmlPhpLexer())
-    elif extens == "pl" or extens == "pm" or extens == "nqp" or extens == "p6" or extens == "6pl" or extens == "p6l" or extens == "pl6" or extens == "pm" or extens == "p6m" or extens == "pm6" or extens == "t":
-        ui_core = CoreUI(lexer=Perl6Lexer())
-    elif extens == "rb" or extens == "rbw" or extens == "rake" or extens == "rbx" or extens == "duby" or extens == "gemspec":
-        ui_core = CoreUI(lexer=RubyLexer())
-    elif extens == "ini" or extens == "init":
-        ui_core = CoreUI(lexer=IniLexer())
-    elif extens == "conf" or extens == "cnf" or extens == "config":
-        ui_core = CoreUI(lexer=ApacheConfLexer())
-    elif extens == "sh" or extens == "cmd" or extens == "bashrc" or extens == "bash_profile":
-        ui_core = CoreUI(lexer=BashLexer())
-    elif extens == "diff" or extens == "patch":
-        ui_core = CoreUI(lexer=DiffLexer())
-    elif extens == "cs":
-        ui_core = CoreUI(lexer=CSharpLexer())
-    elif extens == "sql":
-        ui_core = CoreUI(lexer=MySqlLexer())
-    else:
-        ui_core = CoreUI(lexer=PythonLexer())  # default (no extension) lexer is python
 
 
 def add_window(window):
@@ -636,8 +655,14 @@ def mainloop():
         count = 0
         for pyro in pyros:
             try:
+                if pyro.settings["Show Line Numbers"]:
+                    try:
+                        pyro.lineNums.match_up()
+                    except AttributeError:
+                        pass
+                pyro.update_info()
                 pyro.root.update()
-                pyro.adjust_cli()
+                #pyro.adjust_cli()
                 box = pyro.text.get("1.0", tkinter.END)[:-1]
                 modtext = pyro.mod.get_text()
                 if box != modtext:

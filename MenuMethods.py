@@ -11,6 +11,7 @@ import ChangeManager
 from pygments.lexers.dotnet import CSharpLexer
 from CodeManager import *
 
+SETTINGS = {}
 
 # This function is used to make the loading screens for Building the mod and for generating the Dotnet files
 def create_loading_screen(message="Please Wait..."):
@@ -60,12 +61,15 @@ def _new_fallback(data, window):
     mod = ModObject(name, poly_tech=poly_tech, game=data[1], folder_name=None if data[2] == "" else data[2],
                     steampath=data[4])
     # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
-    pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod)
+    global SETTINGS
+    pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod, settings=SETTINGS)
 
 
 # This gets called when the "new" button is pressed so it creates a prompt asking for the name of the new mod and
 # calls self.new_fallback when they press "done", None means that if they press "cancel" nothing specific is done
-def new():
+def new(settings):
+    global SETTINGS
+    SETTINGS = settings
     create_prompt("New Mod", ("Mod Name",
                               "Game Name (Check Spelling and Punctuation)",
                               "Name of Folder in Steam Files (If different from Game Name)",
@@ -85,10 +89,13 @@ def _open_fallback(name):
         mod = ModObject.load(os.getcwd() + "/projects/" + name.replace(" ", "") + "/" + name.replace(" ", "") + ".umm")
     except FileNotFoundError:
         return "Unity Mod Maker File Missing"
-    pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod)
+    global SETTINGS
+    pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod, settings=SETTINGS)
 
 
-def open():
+def open(settings):
+    global SETTINGS
+    SETTINGS = settings
     create_prompt("Load Mod", ("Mod Name",), _open_fallback, None, warning="Never Open Mods From Untrusted Sources")
 
 
