@@ -8,7 +8,7 @@ import os
 import subprocess
 from tkinter import *
 
-VERSION = "dev 0.3.0"
+VERSION = "alpha 0.1.0"
 windows = []
 
 
@@ -276,7 +276,7 @@ def create_files(mod: ModObject, destroyonerror=None):
 
 
 def dotnet_build(path):
-    command = subprocess.Popen(["dotnet", "build"], cwd=path, shell=True, stdout=subprocess.PIPE)
+    command = subprocess.Popen(["dotnet", "build"], cwd=path, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
     return command.stdout.read()
 
 

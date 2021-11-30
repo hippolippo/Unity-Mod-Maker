@@ -656,37 +656,41 @@ def mainloop():
         count = 0
         for pyro in pyros:
             try:
-                if pyro.settings["Show Line Numbers"]:
-                    try:
-                        pyro.lineNums.match_up()
-                    except AttributeError:
-                        pass
-                pyro.update_info()
-                pyro.root.update()
-                #pyro.adjust_cli()
-                box = pyro.text.get("1.0", tkinter.END)[:-1]
-                modtext = pyro.mod.get_text()
-                if box != modtext:
-                    pyro.refresh()
-                count += 1
-            except _tkinter.TclError as e:
-                #print(e)
-                pass
+                exists = 'normal' == pyro.root.state()
+                if exists:
+                    count += 1
+                    if pyro.settings["Show Line Numbers"]:
+                        try:
+                            pyro.lineNums.match_up()
+                        except AttributeError:
+                            pass
+                    pyro.update_info()
+                    pyro.root.update()
+                    #pyro.adjust_cli()
+                    box = pyro.text.get("1.0", tkinter.END)[:-1]
+                    modtext = pyro.mod.get_text()
+                    if box != modtext:
+                        pyro.refresh()
+            except:
+                continue
+
         for window in windows:
             try:
-                window.update()
-                count += 1
-            except _tkinter.TclError:
+                if 'normal' == window.state():
+                    window.update()
+                    count += 1
+            except Exception:
                 pass
         for window in get_windows():
             try:
-                window.update()
-                count += 1
-            except _tkinter.TclError:
+                if 'normal' == window.state():
+                    window.update()
+                    count += 1
+            except Exception:
                 pass
         if count == 0:
             print("Exiting: All Windows Deleted")
-            exit(0)
+            return
         global RECENT
         if RECENT is not None:
             RECENT.root.lift()

@@ -53,7 +53,7 @@ def get_window_count():
 
 # This is a function that gets called when the main window gets closed, it sets can_make_menu to True because now a new
 # menu can be made without having duplicates
-def close(menu):
+def close(menu, end=True):
     global can_make_menu
     can_make_menu = True
     try:
@@ -174,7 +174,7 @@ class InterfaceMenu:
         except FileNotFoundError:
             mod = ModObject(no_space)
         # this closes the main menu because we do not need it anymore
-        close(self)
+        close(self, False)
         # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
         pyro.CoreUI(lexer=CSharpLexer(), filename=no_space, mod=mod, settings=self.settings)
 
@@ -207,7 +207,7 @@ class InterfaceMenu:
         mod = ModObject(name, poly_tech=poly_tech, game=data[1], folder_name=None if data[2] == "" else data[2],
                         steampath=data[4])
         # close the menu window because we don't need it anymore
-        close(self)
+        close(self, False)
         # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
         pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod, settings=self.settings)
 
@@ -245,7 +245,7 @@ class InterfaceMenu:
             # keep itself open effectively asking them again
             return "Unity Mod Maker File Missing"
         # close the main menu because we do not need it anymore
-        close(self)
+        close(self, False)
         # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
         pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod, settings=self.settings)
 
