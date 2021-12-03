@@ -8,14 +8,16 @@ MAX_UNDO_STACK_SIZE = 0
 
 def undo():
     global undo_stack, redo_stack
-    if len(undo_stack) == 0: return None
+    if len(undo_stack) == 0:
+        return None
     redo_stack.append(undo_stack.pop(-1))
     return redo_stack[-1]
 
 
 def redo():
     global undo_stack, redo_stack
-    if len(redo_stack) == 0: return None
+    if len(redo_stack) == 0:
+        return None
     undo_stack.append(redo_stack.pop(-1))
     return undo_stack[-1]
 
@@ -29,7 +31,7 @@ def log_action(mod, clear_redo):
 
 def update(mod, code, clear_redo=True):
     log_action(mod, clear_redo)
-    if len(undo_stack) > MAX_UNDO_STACK_SIZE and MAX_UNDO_STACK_SIZE != 0:
+    if len(undo_stack) > MAX_UNDO_STACK_SIZE != 0:
         undo_stack.pop(0)
         print("over")
     mod_code = mod.get_text()
@@ -51,6 +53,7 @@ def update(mod, code, clear_redo=True):
     if "Locked" in deleteResults or "Locked" in addResults:
         return "Locked"
     #print(front, len(added), front+len(added))
+    mod.autosave()
     return front + len(added)
 
 

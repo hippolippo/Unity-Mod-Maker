@@ -13,6 +13,7 @@ from CodeManager import *
 
 SETTINGS = {}
 
+
 # This function is used to make the loading screens for Building the mod and for generating the Dotnet files
 def create_loading_screen(message="Please Wait..."):
     # Visuals
@@ -59,7 +60,7 @@ def _new_fallback(data, window):
         return ""
     # creates a new mod with this name and information from the prompt
     mod = ModObject.ModObject(name, poly_tech=poly_tech, game=data[1], folder_name=None if data[2] == "" else data[2],
-                    steampath=data[4])
+                              steampath=data[4])
     # creates a pyro window which will have syntax highlighting for CSharp and will be editing our mod object
     global SETTINGS
     pyro.CoreUI(lexer=CSharpLexer(), filename=name.replace(" ", ""), mod=mod, settings=SETTINGS)

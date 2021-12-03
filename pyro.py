@@ -163,6 +163,7 @@ class CoreUI(object):
         self.lastRegexp = ""
         self.markedLine = 0
         self.root = tkinter.Tk()
+        self.root.withdraw()
         self.root.iconbitmap("resources/unitymodmaker.ico")
         self.root.protocol("WM_DELETE_WINDOW", self.destroy_window)
         self.uiconfig()
@@ -244,7 +245,7 @@ class CoreUI(object):
             self.scroll_data = self.text.yview()
             text = self.text.get("1.0", tkinter.END)[:-1]
             cursor = self.text.index(tkinter.INSERT)
-            #print(cursor)
+            # print(cursor)
             index = ChangeManager.update(self.mod, self.text.get("1.0", tkinter.END)[:-1])
             if index == "Locked":
                 self.undo()
@@ -255,6 +256,7 @@ class CoreUI(object):
             index = self.mod.index
         self.text.delete("1.0", tkinter.END)
         self.text.insert("1.0", self.mod.get_text())
+        self.recolorize()
         if self.mod.get_text() == text and text is not None:
             self.text.mark_set("insert", str(cursor))
         else:
@@ -266,9 +268,11 @@ class CoreUI(object):
                 i += 1
             j = index - a
             self.text.mark_set("insert", "%d.%d" % (i + 1, j))
-
-        self.recolorize()
+        # self.root.update()
         self.text.yview_moveto(self.scroll_data[0])
+
+
+
 
 
     def uiconfig(self):
@@ -276,8 +280,8 @@ class CoreUI(object):
             this method sets up the main window and two text widgets (the editor widget, and a
             text entry widget for the commandline).
         """
-        self.uiopts = {"height": "60",
-                       "width": "132",
+        self.uiopts = {"height": "1000",
+                       "width": "1000",
                        "cursor": "xterm",
                        "bg": "#00062A",
                        "fg": "#FFAC00",
@@ -289,8 +293,14 @@ class CoreUI(object):
                        "selectbackground": "#E0000E",
                        "inactiveselectbackground": "#E0E0E0",
                        }
-        self.text = scrolledtext.ScrolledText(master=self.root, **self.uiopts)
-        self.text.vbar.configure(
+        self.text = Text(master=self.root, wrap="none", **self.uiopts)
+        self.xsb = Scrollbar(self.root, orient="horizontal", command=self.text.xview)
+        self.text.configure(xscrollcommand=self.xsb.set)
+        self.xsb.grid(row=1, column=0, columnspan=2,sticky=(E,W))
+        self.ysb = Scrollbar(self.root, orient="vertical", command=self.text.yview)
+        self.text.configure(yscrollcommand=self.ysb.set)
+        self.ysb.grid(row=0, column=2,sticky=(N,S), rowspan=2)
+        self.ysb.configure(
             activebackground="#FFD310",
             borderwidth="0",
             background="#68606E",
@@ -334,7 +344,7 @@ class CoreUI(object):
         self.text.grid(column=1, row=0, sticky=('nsew'))
         self.root.grid_columnconfigure(0, weight=0)
         self.root.grid_columnconfigure(1, weight=1)
-        self.info.grid(column=0, row=1, pady=1, sticky=('nsew'),columnspan=2)
+        self.info.grid(column=0, row=2, pady=1, sticky=('nsew'),columnspan=3)
         self.info.visible = True
         #self.cli.grid(column=0, row=1, pady=1, sticky=('nsew'))
         #self.cli.bind("<Return>", self.cmdlaunch)
@@ -346,7 +356,7 @@ class CoreUI(object):
 
     def updatetitlebar(self):
         self.root.title("Unity Mod Maker - " + self.filename)
-        self.root.update()
+        #self.root.update()
 
     def destroy_window(self):
         self.close()
@@ -653,10 +663,18 @@ def mainloop():
     global pyros
     global windows
     while True:
+        global RECENT
+        if RECENT is not None:
+            RECENT.root.deiconify()
+            RECENT.root.update()
+            RECENT.root.lift()
+            RECENT.text.focus()
+            RECENT = None
         count = 0
         for pyro in pyros:
             try:
-                exists = 'normal' == pyro.root.state()
+                pyro.root.state()
+                exists = True
                 if exists:
                     count += 1
                     if pyro.settings["Show Line Numbers"]:
@@ -671,28 +689,24 @@ def mainloop():
                     modtext = pyro.mod.get_text()
                     if box != modtext:
                         pyro.refresh()
-            except:
-                continue
+            except Exception as e:
+                pass
 
         for window in windows:
             try:
-                if 'normal' == window.state():
-                    window.update()
-                    count += 1
+                window.state()
+                window.update()
+                count += 1
             except Exception:
                 pass
         for window in get_windows():
             try:
-                if 'normal' == window.state():
-                    window.update()
-                    count += 1
+                window.state()
+                window.update()
+                count += 1
             except Exception:
                 pass
         if count == 0:
             print("Exiting: All Windows Deleted")
             return
-        global RECENT
-        if RECENT is not None:
-            RECENT.root.lift()
-            RECENT.text.focus()
-            RECENT = None
+
