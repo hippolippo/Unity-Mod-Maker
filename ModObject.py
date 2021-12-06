@@ -118,6 +118,7 @@ class ModObject(LimitedModObject):
 
     def create_harmony_patch(self, in_class, method, prefix=True, parameters=list(), have_instance=True, result=None):
         poly_tech = self.poly_tech
+        parameters = [i for i in parameters if i != '']
         if result is not None:
             parameters.insert(0, "ref " + result + " __result")
         if have_instance:
@@ -142,13 +143,15 @@ class ModObject(LimitedModObject):
             contents=LargeCodeBlockWrapper(),
             postfix=end_block()
         ))
-        return_false = CodeLine("return false;" if prefix else "")
+        return_false = CodeLine("return false; // Cancels Original Function" if prefix else "")
         return_true = CodeLine("return true;" if prefix else "")
         patch.block_list[-1].contents.insert_block_after(LargeCodeBlockWrapper([
             CodeBlockWrapper(
                 prefix=CodeLine("if(mEnabled.Value){"),
-                contents=CodeBlock([CodeLine("//__result = null;"), return_false]
-                                   if result is not None else [return_false]).indent(),
+                contents=CodeBlock([CodeLine("// Write code for patch here"),
+                                    CodeLine("//__result = null;"), return_false]
+                                   if result is not None else [CodeLine("// Write code for patch here"),
+                                                               return_false]).indent(),
                 postfix=end_block()
             ),
             return_true
