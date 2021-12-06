@@ -30,6 +30,7 @@ def log_action(mod, clear_redo):
 
 
 def update(mod, code, clear_redo=True):
+    mod.autosave()
     log_action(mod, clear_redo)
     if len(undo_stack) > MAX_UNDO_STACK_SIZE != 0:
         undo_stack.pop(0)
@@ -53,7 +54,6 @@ def update(mod, code, clear_redo=True):
     if "Locked" in deleteResults or "Locked" in addResults:
         return "Locked"
     #print(front, len(added), front+len(added))
-    mod.autosave()
     return front + len(added)
 
 

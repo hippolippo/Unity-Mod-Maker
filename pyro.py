@@ -69,6 +69,7 @@
         Pyro requires Tkinter and Pygment external libraries.
 
 """
+
 RECENT = None
 
 import os
@@ -235,7 +236,7 @@ class CoreUI(object):
         self.menubar.add_cascade(label="Build", menu=self.buildmenu)
 
         self.buildmenu.add_command(label="Build and Install", command=partial(MenuMethods.build_install, self))
-        self.buildmenu.add_command(label="Export C# File", command=partial(MenuMethods.export_cs, self))
+        self.buildmenu.add_command(label="Export C# File", command=partial(MenuMethods.export_cs, self), state="disabled")
         self.buildmenu.add_command(label="Generate Dotnet Files", command=partial(MenuMethods.export_dotnet, self))
 
         self.root.config(menu=self.menubar)
@@ -571,6 +572,7 @@ class CoreUI(object):
         # self.recolorize()
 
     def close(self, event=None):
+        self.mod.autosave(False)
         import GraphicalInterface
         GraphicalInterface.set_window_count(GraphicalInterface.get_window_count() - 1)
         self.root.destroy()

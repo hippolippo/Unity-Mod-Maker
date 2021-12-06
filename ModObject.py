@@ -8,7 +8,7 @@ import os
 import subprocess
 from tkinter import *
 
-VERSION = "alpha 0.1.0"
+VERSION = "alpha 0.1.1"
 windows = []
 
 
@@ -23,6 +23,7 @@ class ModObject(LimitedModObject):
 
     def __init__(self, mod_name="mod", version="1.0.0", poly_tech=True, game="Poly Bridge 2", folder_name=None,
                  steampath="C:\\Program Files (x86)\\Steam\\steamapps\\common\\"):
+        self.saved = False
         self.index = 0
         self.mod_maker_version = VERSION
         self.game = game
@@ -141,19 +142,32 @@ class ModObject(LimitedModObject):
             contents=LargeCodeBlockWrapper(),
             postfix=end_block()
         ))
+        return_false = CodeLine("return false;" if prefix else "")
+        return_true = CodeLine("return true;" if prefix else "")
         patch.block_list[-1].contents.insert_block_after(LargeCodeBlockWrapper([
             CodeBlockWrapper(
                 prefix=CodeLine("if(mEnabled.Value){"),
-                contents=CodeBlock([CodeLine("//__result = null;"), CodeLine("return false;")]
-                                   if result is not None else [CodeLine("return false;")]).indent(),
+                contents=CodeBlock([CodeLine("//__result = null;"), return_false]
+                                   if result is not None else [return_false]).indent(),
                 postfix=end_block()
             ),
-            CodeLine("return true;")
+            return_true
         ]))
         patch.block_list[-1].contents.indent()
         patch.indent()
         patch.indent()
         return patch.block_list[-1].contents.block_list[-1].block_list[0].contents
+
+    def autosave(self, changeSaved=True):
+        current_directory = os.getcwd()
+        name_no_space = self.mod_name_no_space.get_text()
+        folder_path = os.path.join(current_directory, "projects/" + name_no_space)
+        if not os.path.isdir(folder_path):
+            return
+        if changeSaved:
+            self.saved = False
+
+        save(self, location=folder_path + "/" + name_no_space + "-auto.umm", overwrite_auto=False)
 
     def set_mod_name(self, new_name):
         self.mod_name.code = new_name
@@ -238,13 +252,13 @@ def create_files(mod: ModObject, destroyonerror=None):
     except FileExistsError:
         pass
     save(mod, location=folder_path + "/" + name_no_space + ".umm")
-    shutil.copyfile("gitignoretemplate", folder_path + "/.gitignore")
-    shutil.copyfile("configmanagertemplate", folder_path + "/ConfigurationManagerAttributes.cs")
+    shutil.copyfile("resources/gitignoretemplate", folder_path + "/.gitignore")
+    shutil.copyfile("resources/configmanagertemplate", folder_path + "/ConfigurationManagerAttributes.cs")
     with open(folder_path + "/" + name_no_space + ".cs", "w") as f:
         code = "\n".join([s for s in mod.code.get_text().splitlines() if s])
         f.write(code)
     with open(folder_path + "/" + name_no_space + ".csproj", "w") as f:
-        code = open("csprojtemplate", "r").read().replace("{{mod_name}}", name_no_space).replace("{{ptf}}",
+        code = open("resources/csprojtemplate", "r").read().replace("{{mod_name}}", name_no_space).replace("{{ptf}}",
                                                                                                  """
     <Reference Include="PolyTechFramework">
         <HintPath>Libraries/PolyTechFramework.dll</HintPath>
@@ -280,11 +294,33 @@ def dotnet_build(path):
     return command.stdout.read()
 
 
-def save(mod_object, location="mod.umm"):
+def save(mod_object, location="mod.umm", overwrite_auto=True):
+    mod_object.saved = True
+    auto_path = location.split(".")
+    if len(auto_path) == 1:
+        auto_path += "-auto"
+    else:
+        auto_path[-2] += "-auto"
+        auto_path = ".".join("auto_path")
+    if overwrite_auto:
+        if os.path.exists(auto_path):
+            os.remove(auto_path)
     pickle.dump(mod_object, open(location, "wb"))
 
 
-def load(location="mod.umm"):
+def load(location="mod.umm", auto_option=True):
+    auto_path = location.split(".")
+    if len(auto_path) == 1:
+        auto_path += "-auto"
+    else:
+        auto_path[-2] += "-auto"
+        auto_path = ".".join(auto_path)
+    use_auto = False
+    if auto_option and os.path.exists(auto_path):
+        use_auto = messagebox.askquestion("Load Autosave?",
+                                          "There is an autosave available, would you like to load it instead?")
+    if use_auto:
+        location = auto_path
     mod = pickle.load(open(location, "rb"))
     if mod.mod_maker_version != VERSION:
         messagebox.showwarning("Mod From Old Version", "This Mod Was Made in Version " + mod.mod_maker_version +
